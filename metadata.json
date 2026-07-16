@@ -1,0 +1,6 @@
+{
+  "name": "Vision Capture",
+  "description": "AI data collection company specializing in high-quality egocentric data collection for Physical AI and robotics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
