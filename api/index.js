@@ -14,16 +14,18 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Serverless Connection Helper
-let isConnected = false;
 const connectDB = async () => {
-  if (isConnected) return;
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
   if (!process.env.MONGODB_URI) {
     console.warn('WARNING: MONGODB_URI is not defined in .env.');
     return;
   }
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    isConnected = true;
+    await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000
+    });
     console.log('Connected to MongoDB Atlas');
   } catch (err) {
     console.error('MongoDB connection error:', err);
