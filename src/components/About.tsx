@@ -6,7 +6,7 @@ export default function About() {
     <section id="about" className="py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          
+
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -17,7 +17,7 @@ export default function About() {
               Pioneering Data Collection for <br />
               <span className="text-slate-500">Embodied Intelligence</span>
             </h2>
-            
+
             <div className="space-y-6 text-slate-600 text-lg leading-relaxed">
               <p>
                 Founded in 2026 and headquartered in Alwar, Rajasthan, Vision Capture is India's premier AI data collection company dedicated entirely to Physical AI, robotics, and embodied systems.
@@ -26,7 +26,7 @@ export default function About() {
                 We bridge the gap between digital models and the physical world by providing highly accurate, ethically sourced, real-world datasets. Our scalable PAN India operations capture the nuanced human demonstrations needed to train the next generation of intelligent machines.
               </p>
             </div>
-            
+
             <div className="mt-8 flex items-center gap-2 text-slate-900 font-bold text-sm tracking-wide">
               <MapPin className="w-4 h-4" />
               <span>HQ: Alwar, Rajasthan | Operations: PAN India</span>
@@ -66,7 +66,7 @@ export default function About() {
               </p>
             </motion.div>
           </div>
-          
+
         </div>
       </div>
     </section>

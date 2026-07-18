@@ -18,7 +18,7 @@ export default function Industries() {
         <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 mb-12">
           Empowering Innovation Across Industries
         </h2>
-        
+
         <div className="flex flex-wrap justify-center gap-4">
           {industries.map((ind, i) => (
             <motion.div

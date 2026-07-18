@@ -14,7 +14,7 @@ export default function ValueProposition() {
     <section id="why-us" className="py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          
+
           <div className="order-2 lg:order-1 relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -24,7 +24,7 @@ export default function ValueProposition() {
               className="grid gap-4"
             >
               {points.map((point, index) => (
-                <div 
+                <div
                   key={index}
                   className="flex items-start gap-4 bg-white/60 backdrop-blur-xl border border-slate-200 p-4 rounded-xl shadow-sm hover:bg-white transition-colors"
                 >
@@ -49,7 +49,7 @@ export default function ValueProposition() {
             <p className="text-slate-600 text-lg mb-8 leading-relaxed">
               We understand that the success of physical AI depends entirely on the quality of its training data. Our operations are designed from the ground up to handle complex, large-scale data collection without compromising on strict quality constraints.
             </p>
-            
+
             <div className="grid grid-cols-2 gap-6 pt-8 border-t border-slate-200">
               <div>
                 <div className="text-4xl font-display font-bold text-slate-900 mb-2">100%</div>

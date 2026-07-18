@@ -30,8 +30,8 @@ export default function App() {
           <Hero />
           <Services />
           <ValueProposition />
-          <WhatWeRecord />
           <Industries />
+          <WhatWeRecord />
           <SampleVideoData />
           <About />
           <Contact />

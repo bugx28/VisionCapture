@@ -1,4 +1,5 @@
-import { Camera, MapPin, Mail, Linkedin, Twitter } from 'lucide-react';
+import { MapPin, Mail, Linkedin, Twitter } from 'lucide-react';
+import logo from '../assets/logo.svg';
 
 export default function Footer() {
   return (
@@ -8,18 +9,17 @@ export default function Footer() {
           
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-md">
-                <Camera className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-display font-bold tracking-tight text-slate-900 italic">
-                VISION<span className="text-slate-500">CAPTURE</span>
-              </span>
+              <img 
+                src={logo} 
+                alt="Vision Capture Logo" 
+                className="h-8 md:h-10 w-auto filter grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
+              />
             </div>
             <p className="text-slate-600 text-sm max-w-sm mb-6 leading-relaxed">
               India's premier AI data collection company specializing in high-quality egocentric data for Physical AI, robotics, and embodied intelligent systems.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+              <a href="https://www.linkedin.com/company/visioncaptureai/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
                 <Linkedin className="w-4 h-4" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
@@ -46,7 +46,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-slate-900 shrink-0" />
-                <a href="mailto:hello@visioncapture.ai" className="hover:text-slate-900 transition-colors">hello@visioncapture.ai</a>
+                <a href="mailto:info@visioncapture.in" className="hover:text-slate-900 transition-colors">info@visioncapture.in</a>
               </li>
             </ul>
           </div>
