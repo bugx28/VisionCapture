@@ -13,14 +13,22 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB Atlas
-if (process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB Atlas'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-} else {
-  console.warn('WARNING: MONGODB_URI is not defined in .env. MongoDB will not connect.');
-}
+// MongoDB Serverless Connection Helper
+let isConnected = false;
+const connectDB = async () => {
+  if (isConnected) return;
+  if (!process.env.MONGODB_URI) {
+    console.warn('WARNING: MONGODB_URI is not defined in .env.');
+    return;
+  }
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    isConnected = true;
+    console.log('Connected to MongoDB Atlas');
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+  }
+};
 
 // Nodemailer configuration
 const transporter = nodemailer.createTransport({
@@ -41,6 +49,9 @@ app.post('/api/contact', async (req, res) => {
     if (!name || !email || !company || !project) {
       return res.status(400).json({ error: 'All fields are required.' });
     }
+
+    // Connect to DB if needed (Serverless friendly)
+    await connectDB();
 
     // 1. Save to MongoDB
     let contact;
@@ -90,7 +101,7 @@ ${project}
     });
   } catch (error) {
     console.error('Error submitting form:', error);
-    res.status(500).json({ error: 'Failed to process the form submission.' });
+    res.status(500).json({ error: 'Failed to process: ' + (error.message || 'Unknown error') });
   }
 });
 
