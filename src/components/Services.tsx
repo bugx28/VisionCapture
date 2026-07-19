@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Glasses } from 'lucide-react';
+import { Glasses, MessageCircle } from 'lucide-react';
 
 export default function Services() {
   const services = [
@@ -32,8 +32,13 @@ export default function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.2 }}
-              className="bg-white/60 backdrop-blur-xl border border-white shadow-xl rounded-[2rem] p-8 max-w-xl w-full hover:bg-white/90 transition-all group"
+              className="relative bg-white/60 backdrop-blur-xl border border-white shadow-xl rounded-[2rem] p-8 max-w-xl w-full hover:bg-white/90 transition-all group"
             >
+              <a href="/partner-with-us" className="absolute top-6 right-6 flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-full transition-colors text-sm font-bold shadow-sm z-10">
+                <MessageCircle className="w-4 h-4" />
+                Contact Us
+              </a>
+              
               <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center mb-8 group-hover:scale-110 transition-all duration-300 shadow-md">
                 <div className="transition-colors duration-300">
                   {service.icon}

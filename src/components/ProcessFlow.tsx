@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Glasses, Database, Settings, Brain } from 'lucide-react';
+import { Glasses, Database, Settings, Brain, FileVideo } from 'lucide-react';
 
 export default function ProcessFlow() {
   const containerRef = useRef(null);
@@ -54,6 +54,34 @@ export default function ProcessFlow() {
               className="drop-shadow-[0_0_8px_rgba(71,85,105,0.3)]"
             />
           </svg>
+          
+          {/* Moving File Icons */}
+          {isInView && (
+            <>
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={`file-${i}`}
+                  className="absolute top-[-12px]"
+                  initial={{ left: '0%', opacity: 0, scale: 0.5 }}
+                  animate={{ 
+                    left: '100%', 
+                    opacity: [0, 1, 1, 0],
+                    scale: [0.5, 1, 1, 0.5]
+                  }}
+                  transition={{ 
+                    duration: 4, 
+                    repeat: Infinity, 
+                    delay: i * 1.3,
+                    ease: "linear"
+                  }}
+                >
+                  <div className="bg-white/80 backdrop-blur-sm p-1 rounded-md border border-slate-200 shadow-sm text-blue-500">
+                    <FileVideo className="w-4 h-4" />
+                  </div>
+                </motion.div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* The 3 Steps */}

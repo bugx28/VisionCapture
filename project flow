@@ -1,0 +1,12 @@
+project flow 
+
+1. Earn (contibuter page )page ------------ All useful details need to handle at server side for work and contact
+    -> where user came and register for work to earn money 
+    -> user's basic details need to register here 
+        -> handle differently ( all the necessary validations and Notification )
+
+2. careers -> this redirect to earn page with details of earing while recording 
+
+3. Data Privacy & Security link in footers 
+4. Safety Guidelines link in footers
+5. 

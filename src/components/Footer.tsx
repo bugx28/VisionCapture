@@ -1,18 +1,19 @@
 import { MapPin, Mail, Linkedin, Twitter } from 'lucide-react';
 import logo from '../assets/logo.svg';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
     <footer className="bg-slate-100/50 border-t border-slate-200 pt-16 pb-8 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-12">
-          
+
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <img 
-                src={logo} 
-                alt="Vision Capture Logo" 
-                className="h-8 md:h-10 w-auto filter grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
+              <img
+                src={logo}
+                alt="Vision Capture Logo"
+                className="h-8 md:h-10 w-auto filter grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
               />
             </div>
             <p className="text-slate-600 text-sm max-w-sm mb-6 leading-relaxed">
@@ -29,11 +30,12 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-slate-900 font-bold mb-4">Services</h4>
+            <h4 className="text-slate-900 font-bold mb-4">Company & Services</h4>
             <ul className="space-y-3">
-              <li><a href="#services" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Egocentric Video</a></li>
-              <li><a href="#what-we-record" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Data Categories</a></li>
-              <li><a href="#sample-data" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Sample Data</a></li>
+              <li><a href="/#services" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Egocentric Video</a></li>
+              <li><a href="/#what-we-record" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Data Categories</a></li>
+              <li><a href="/#sample-data" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Sample Data</a></li>
+              <li><Link to="/contributors" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Careers</Link></li>
             </ul>
           </div>
 
@@ -42,15 +44,20 @@ export default function Footer() {
             <ul className="space-y-4 text-sm text-slate-600">
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-slate-900 shrink-0 mt-0.5" />
-                <span>Headquarters<br/>Alwar, Rajasthan, India</span>
+                <span>Headquarters<br />Alwar, Rajasthan, India</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-slate-900 shrink-0" />
                 <a href="mailto:info@visioncapture.in" className="hover:text-slate-900 transition-colors">info@visioncapture.in</a>
               </li>
+              <li className="mt-2">
+                <Link to="/partner-with-us" className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+                  Partner with us &rarr;
+                </Link>
+              </li>
             </ul>
           </div>
-          
+
         </div>
 
         <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
