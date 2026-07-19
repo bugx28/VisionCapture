@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function Admin() {
+  const queryClient = useQueryClient();
   const [token, setToken] = useState(localStorage.getItem('adminToken'));
-  const [users, setUsers] = useState<any[]>([]);
-  const [contacts, setContacts] = useState<any[]>([]);
   
   // Login State
   const [email, setEmail] = useState('');
@@ -13,78 +13,114 @@ export default function Admin() {
   // UI State
   const [activeTab, setActiveTab] = useState<'contributors' | 'inquiries'>('contributors');
   const [filterEgocentric, setFilterEgocentric] = useState(false);
+  
+  // Pagination State
+  const [usersPage, setUsersPage] = useState(1);
+  const [contactsPage, setContactsPage] = useState(1);
 
   // Messaging State
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
+
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Inquiries State
   const [selectedContact, setSelectedContact] = useState<any>(null);
 
+  // Queries
+  const { data: usersData, isLoading: isUsersLoading } = useQuery({
+    queryKey: ['admin-users', usersPage, token],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/users?page=${usersPage}&limit=20`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) { handleLogout(); throw new Error('Unauthorized'); }
+      const data = await res.json();
+      return data;
+    },
+    enabled: !!token,
+  });
+
+  const { data: contactsData, isLoading: isContactsLoading } = useQuery({
+    queryKey: ['admin-contacts', contactsPage, token],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/contacts?page=${contactsPage}&limit=20`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      return data;
+    },
+    enabled: !!token,
+  });
+
+  const { data: messages = [], isLoading: isMessagesLoading } = useQuery({
+    queryKey: ['messages', selectedUser?._id, token],
+    queryFn: async () => {
+      const res = await fetch(`/api/messages/${selectedUser._id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      return data.messages;
+    },
+    enabled: !!token && !!selectedUser?._id,
+    refetchInterval: 10000,
+  });
+
   useEffect(() => {
-    if (token) {
-      fetchUsers();
-      fetchContacts();
+    scrollToBottom();
+  }, [messages]);
+
+  // Mutations
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+    },
+    onSuccess: (_, id) => {
+      if (selectedUser?._id === id) setSelectedUser(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     }
-  }, [token]);
+  });
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      if (res.ok) setUsers(data.users);
-      else if (res.status === 401 || res.status === 403) handleLogout();
-    } catch (err) {
-      console.error(err);
+  const deleteContactMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/contacts/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to delete');
+    },
+    onSuccess: (_, id) => {
+      if (selectedContact?._id === id) setSelectedContact(null);
+      queryClient.invalidateQueries({ queryKey: ['admin-contacts'] });
     }
-  };
+  });
 
-  const fetchContacts = async () => {
-    try {
-      const res = await fetch('/api/admin/contacts', { headers: { 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      if (res.ok) setContacts(data.contacts);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchMessages = async (userId: string) => {
-    try {
-      const res = await fetch(`/api/messages/${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      if (res.ok) setMessages(data.messages);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const selectUserForChat = (user: any) => {
-    setSelectedUser(user);
-    fetchMessages(user._id);
-  };
-
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedUser) return;
-    try {
+  const sendMessageMutation = useMutation({
+    mutationFn: async (content: string) => {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ content: newMessage, receiverId: selectedUser._id })
+        body: JSON.stringify({ content, receiverId: selectedUser._id })
       });
-      if (res.ok) {
-        setNewMessage('');
-        fetchMessages(selectedUser._id);
-      }
-    } catch (err) {
-      console.error(err);
+      if (!res.ok) throw new Error('Failed to send message');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', selectedUser?._id] });
     }
-  };
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,8 +134,7 @@ export default function Admin() {
       const data = await res.json();
       if (res.ok && data.user.role === 'admin') {
         localStorage.setItem('adminToken', data.token);
-        setToken(data.token);
-        window.dispatchEvent(new Event('authChange'));
+        window.location.reload();
       } else {
         setLoginError(data.error || 'Access denied. Admins only.');
       }
@@ -110,45 +145,38 @@ export default function Admin() {
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
-    setToken(null);
-    setEmail('');
-    setPassword('');
-    setLoginError('');
+    localStorage.removeItem('token');
+    queryClient.removeQueries();
     window.dispatchEvent(new Event('authChange'));
+    window.location.reload();
   };
 
-  const deleteUser = async (id: string, e: React.MouseEvent) => {
+  const sendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedUser) return;
+    sendMessageMutation.mutate(newMessage);
+    setNewMessage('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  };
+
+  const deleteUser = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!window.confirm('Are you sure you want to delete this contributor?')) return;
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        if (selectedUser && selectedUser._id === id) setSelectedUser(null);
-        fetchUsers();
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    deleteUserMutation.mutate(id);
   };
 
-  const deleteContact = async (id: string, e: React.MouseEvent) => {
+  const deleteContact = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!window.confirm('Are you sure you want to delete this inquiry?')) return;
-    try {
-      const res = await fetch(`/api/admin/contacts/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        if (selectedContact && selectedContact._id === id) setSelectedContact(null);
-        fetchContacts();
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    deleteContactMutation.mutate(id);
   };
 
   if (!token) {
@@ -171,9 +199,14 @@ export default function Admin() {
     );
   }
 
-  const filteredUsers = filterEgocentric 
-    ? users.filter(u => u.projectsInterestedIn && u.projectsInterestedIn.includes('Egocentric Video')) 
-    : users;
+  const usersList = usersData?.users || [];
+  const contactsList = contactsData?.contacts || [];
+  
+  const filteredUsers = React.useMemo(() => {
+    return filterEgocentric 
+      ? usersList.filter((u: any) => u.projectsInterestedIn && u.projectsInterestedIn.includes('Egocentric Video')) 
+      : usersList;
+  }, [filterEgocentric, usersList]);
 
   return (
     <div className="py-24 max-w-7xl mx-auto px-4">
@@ -183,10 +216,10 @@ export default function Admin() {
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
           <div className="flex gap-4 text-sm font-medium text-slate-600">
             <span className="bg-white/80 px-3 py-1 rounded-full border border-slate-200 shadow-sm">
-              Total Contributors: <strong className="text-slate-900">{users.length}</strong>
+              Total Contributors: <strong className="text-slate-900">{usersData?.pagination?.total || 0}</strong>
             </span>
             <span className="bg-white/80 px-3 py-1 rounded-full border border-slate-200 shadow-sm">
-              Total Inquiries: <strong className="text-slate-900">{contacts.length}</strong>
+              Total Inquiries: <strong className="text-slate-900">{contactsData?.pagination?.total || 0}</strong>
             </span>
           </div>
         </div>
@@ -213,7 +246,7 @@ export default function Admin() {
       <div className="grid lg:grid-cols-3 gap-8">
         
         {/* LEFT PANEL (List) */}
-        <div className="lg:col-span-1 bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-6 flex flex-col h-[600px]">
+        <div className="lg:col-span-1 bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-6 flex flex-col h-[650px]">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-slate-900">
               {activeTab === 'contributors' ? 'Contributors' : 'Inquiries'}
@@ -232,44 +265,104 @@ export default function Admin() {
             {/* Contributors List */}
             {activeTab === 'contributors' && (
               <>
-                {filteredUsers.length === 0 && <p className="text-slate-500 text-center m-auto">No contributors found.</p>}
-                {filteredUsers.map((u, index) => (
-                  <div 
-                    key={u._id} 
-                    onClick={() => selectUserForChat(u)}
-                    className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedUser?._id === u._id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">{index + 1}</span>
-                      <div className="overflow-hidden">
-                        <p className="font-bold text-slate-900 truncate">{u.fullName}</p>
-                        <p className="text-sm text-slate-500 truncate">{u.email}</p>
+                {isUsersLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className="h-16 bg-slate-100 animate-pulse rounded-2xl" />
+                    ))}
+                  </div>
+                ) : filteredUsers.length === 0 ? (
+                  <p className="text-slate-500 text-center m-auto">No contributors found.</p>
+                ) : (
+                  filteredUsers.map((u: any, index: number) => (
+                    <div 
+                      key={u._id} 
+                      onClick={() => setSelectedUser(u)}
+                      className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedUser?._id === u._id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">{(usersPage - 1) * 20 + index + 1}</span>
+                        <div className="overflow-hidden">
+                          <p className="font-bold text-slate-900 truncate">{u.fullName}</p>
+                          <p className="text-sm text-slate-500 truncate">{u.email}</p>
+                        </div>
                       </div>
                     </div>
+                  ))
+                )}
+                
+                {/* Users Pagination */}
+                {usersData?.pagination && usersData.pagination.pages > 1 && (
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-100 mt-auto">
+                    <button 
+                      disabled={usersPage === 1} 
+                      onClick={() => setUsersPage(p => p - 1)}
+                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg disabled:opacity-50 transition-colors"
+                    >
+                      Prev
+                    </button>
+                    <span className="text-sm font-medium text-slate-500">Page {usersPage} of {usersData.pagination.pages}</span>
+                    <button 
+                      disabled={usersPage === usersData.pagination.pages} 
+                      onClick={() => setUsersPage(p => p + 1)}
+                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg disabled:opacity-50 transition-colors"
+                    >
+                      Next
+                    </button>
                   </div>
-                ))}
+                )}
               </>
             )}
 
             {/* Inquiries List */}
             {activeTab === 'inquiries' && (
               <>
-                {contacts.length === 0 && <p className="text-slate-500 text-center m-auto">No inquiries found.</p>}
-                {contacts.map((c, index) => (
-                  <div 
-                    key={c._id} 
-                    onClick={() => setSelectedContact(c)}
-                    className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedContact?._id === c._id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">{index + 1}</span>
-                      <div className="overflow-hidden">
-                        <p className="font-bold text-slate-900 truncate">{c.company}</p>
-                        <p className="text-sm text-slate-500 truncate">{c.name}</p>
+                {isContactsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className="h-16 bg-slate-100 animate-pulse rounded-2xl" />
+                    ))}
+                  </div>
+                ) : contactsList.length === 0 ? (
+                  <p className="text-slate-500 text-center m-auto">No inquiries found.</p>
+                ) : (
+                  contactsList.map((c: any, index: number) => (
+                    <div 
+                      key={c._id} 
+                      onClick={() => setSelectedContact(c)}
+                      className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedContact?._id === c._id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">{(contactsPage - 1) * 20 + index + 1}</span>
+                        <div className="overflow-hidden">
+                          <p className="font-bold text-slate-900 truncate">{c.company}</p>
+                          <p className="text-sm text-slate-500 truncate">{c.name}</p>
+                        </div>
                       </div>
                     </div>
+                  ))
+                )}
+
+                {/* Contacts Pagination */}
+                {contactsData?.pagination && contactsData.pagination.pages > 1 && (
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-100 mt-auto">
+                    <button 
+                      disabled={contactsPage === 1} 
+                      onClick={() => setContactsPage(p => p - 1)}
+                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg disabled:opacity-50 transition-colors"
+                    >
+                      Prev
+                    </button>
+                    <span className="text-sm font-medium text-slate-500">Page {contactsPage} of {contactsData.pagination.pages}</span>
+                    <button 
+                      disabled={contactsPage === contactsData.pagination.pages} 
+                      onClick={() => setContactsPage(p => p + 1)}
+                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg disabled:opacity-50 transition-colors"
+                    >
+                      Next
+                    </button>
                   </div>
-                ))}
+                )}
               </>
             )}
             
@@ -277,50 +370,69 @@ export default function Admin() {
         </div>
 
         {/* RIGHT PANEL (Details) */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl flex flex-col h-[600px] overflow-hidden">
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl flex flex-col h-[650px] overflow-hidden">
           
           {/* Contributor Chat Details */}
           {activeTab === 'contributors' && (
             selectedUser ? (
               <>
-                <div className="p-4 border-b border-slate-100 flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
+                <div className="p-3 border-b border-slate-100 flex flex-col shrink-0">
+                  <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h2 className="text-xl font-bold text-slate-900">{selectedUser.fullName}</h2>
-                      <p className="text-sm text-slate-500">{selectedUser.email}</p>
+                      <h2 className="text-lg font-bold text-slate-900 leading-tight">{selectedUser.fullName}</h2>
+                      <p className="text-xs text-slate-500">{selectedUser.email}</p>
                     </div>
-                    <button onClick={(e) => deleteUser(selectedUser._id, e)} className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-semibold transition-colors">Delete Contributor</button>
+                    <button onClick={(e) => deleteUser(selectedUser._id, e)} className="text-red-500 hover:bg-red-50 px-3 py-1 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50" disabled={deleteUserMutation.isPending}>
+                      {deleteUserMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </button>
                   </div>
                   
                   {/* User Details Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-2 text-xs bg-slate-50 p-4 rounded-xl border border-slate-100 overflow-y-auto max-h-40">
-                    <div><span className="text-slate-400 block mb-1">Location</span><span className="font-semibold text-slate-700">{selectedUser.city}, {selectedUser.country}</span></div>
-                    <div><span className="text-slate-400 block mb-1">Phone</span><span className="font-semibold text-slate-700">{selectedUser.phone}</span></div>
-                    <div><span className="text-slate-400 block mb-1">Experience</span><span className="font-semibold text-slate-700">{selectedUser.experience}</span></div>
-                    <div><span className="text-slate-400 block mb-1">Native Lang</span><span className="font-semibold text-slate-700">{selectedUser.nativeLanguage}</span></div>
-                    <div><span className="text-slate-400 block mb-1">Other Lang</span><span className="font-semibold text-slate-700">{selectedUser.additionalLanguage || '-'}</span></div>
-                    <div><span className="text-slate-400 block mb-1">Source</span><span className="font-semibold text-slate-700">{selectedUser.howFoundUs}</span></div>
-                    <div className="col-span-2 sm:col-span-3"><span className="text-slate-400 block mb-1">Projects Interested In</span><span className="font-semibold text-slate-700">{selectedUser.projectsInterestedIn?.join(', ') || '-'}</span></div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-2 text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-100 overflow-y-auto max-h-24">
+                    <div><span className="text-slate-400 block">Location</span><span className="font-semibold text-slate-700">{selectedUser.city}, {selectedUser.country}</span></div>
+                    <div><span className="text-slate-400 block">Phone</span><span className="font-semibold text-slate-700">{selectedUser.phone}</span></div>
+                    <div><span className="text-slate-400 block">Experience</span><span className="font-semibold text-slate-700">{selectedUser.experience}</span></div>
+                    <div><span className="text-slate-400 block">Native Lang</span><span className="font-semibold text-slate-700">{selectedUser.nativeLanguage}</span></div>
+                    <div><span className="text-slate-400 block">Other Lang</span><span className="font-semibold text-slate-700">{selectedUser.additionalLanguage || '-'}</span></div>
+                    <div><span className="text-slate-400 block">Source</span><span className="font-semibold text-slate-700">{selectedUser.howFoundUs}</span></div>
+                    <div className="col-span-2"><span className="text-slate-400 block">Projects</span><span className="font-semibold text-slate-700 truncate block" title={selectedUser.projectsInterestedIn?.join(', ')}>{selectedUser.projectsInterestedIn?.join(', ') || '-'}</span></div>
                   </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col bg-slate-50/50">
-                  {messages.length === 0 && <p className="text-slate-500 text-center m-auto">No messages yet.</p>}
-                  {messages.map((msg, idx) => (
-                    <div key={idx} className={`max-w-[80%] p-3 rounded-2xl whitespace-pre-wrap ${msg.senderId !== selectedUser._id ? 'bg-blue-600 text-white self-end rounded-tr-none' : 'bg-slate-200 text-slate-900 self-start rounded-tl-none'}`}>
-                      {msg.content}
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
+                  {isMessagesLoading ? (
+                    <div className="space-y-4 animate-pulse">
+                      <div className="h-10 bg-slate-200 rounded-2xl w-3/4 ml-auto"></div>
+                      <div className="h-16 bg-slate-200 rounded-2xl w-1/2"></div>
+                      <div className="h-12 bg-slate-200 rounded-2xl w-2/3 ml-auto"></div>
                     </div>
-                  ))}
+                  ) : messages.length === 0 ? (
+                    <p className="text-slate-500 text-center m-auto">No messages yet.</p>
+                  ) : (
+                    messages.map((msg: any, idx: number) => (
+                      <div key={idx} className={`max-w-[80%] p-3 rounded-2xl whitespace-pre-wrap ${msg.senderId !== selectedUser._id ? 'bg-blue-600 text-white self-end rounded-tr-none' : 'bg-slate-200 text-slate-900 self-start rounded-tl-none'}`}>
+                        {msg.content}
+                      </div>
+                    ))
+                  )}
                 </div>
                 <form onSubmit={sendMessage} className="p-4 border-t border-slate-100 flex gap-2 items-end bg-white">
                   <textarea 
-                    rows={4}
+                    ref={textareaRef}
+                    rows={isFocused || newMessage.length > 0 ? 4 : 1}
                     value={newMessage} 
-                    onChange={e => setNewMessage(e.target.value)} 
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => {
+                      setIsFocused(false);
+                      if (!newMessage && textareaRef.current) {
+                        textareaRef.current.style.height = 'auto';
+                      }
+                    }}
+                    onChange={handleTextareaChange} 
                     placeholder="Type a message... (Press Enter for new line)" 
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-[360px] overflow-y-auto transition-all duration-200"
                   />
-                  <button type="submit" className="bg-slate-900 text-white px-6 py-2 h-[42px] rounded-xl font-bold hover:bg-slate-800 transition-colors">
-                    Send
+                  <button type="submit" disabled={sendMessageMutation.isPending} className="bg-slate-900 text-white px-6 py-2 h-[48px] rounded-xl font-bold hover:bg-slate-800 transition-colors disabled:opacity-50">
+                    {sendMessageMutation.isPending ? '...' : 'Send'}
                   </button>
                 </form>
               </>
@@ -344,7 +456,9 @@ export default function Admin() {
                     <p className="text-lg font-medium text-slate-700">{selectedContact.name}</p>
                     <a href={`mailto:${selectedContact.email}`} className="text-sm text-blue-600 hover:underline">{selectedContact.email}</a>
                   </div>
-                  <button onClick={(e) => deleteContact(selectedContact._id, e)} className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-semibold transition-colors shrink-0">Delete Inquiry</button>
+                  <button onClick={(e) => deleteContact(selectedContact._id, e)} className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-semibold transition-colors shrink-0 disabled:opacity-50" disabled={deleteContactMutation.isPending}>
+                    {deleteContactMutation.isPending ? 'Deleting...' : 'Delete Inquiry'}
+                  </button>
                 </div>
                 <div className="p-6 flex-1 overflow-y-auto bg-slate-50/50">
                   <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Project Requirements</h3>

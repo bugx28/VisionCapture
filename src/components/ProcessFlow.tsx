@@ -167,6 +167,7 @@ export default function ProcessFlow() {
                 loop
                 muted
                 playsInline
+                preload="none"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
                 src="/orb-video.mp4"
               />

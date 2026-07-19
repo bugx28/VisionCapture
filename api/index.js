@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import compression from 'compression';
 import Contact from './models/Contact.js';
 import User from './models/User.js';
 import Message from './models/Message.js';
@@ -16,14 +17,17 @@ const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_please_change_in_production';
 
 app.use(cors());
+app.use(compression());
 app.use(express.json());
 
 // In-memory OTP store (For production, consider Redis or MongoDB for distributed persistence)
 const otpStore = new Map();
 
+let isConnected = false;
 // MongoDB Serverless Connection Helper
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    isConnected = true;
     return;
   }
   if (!process.env.MONGODB_URI) {
@@ -31,9 +35,11 @@ const connectDB = async () => {
     return;
   }
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10
     });
+    isConnected = db.connections[0].readyState === 1;
     console.log('Connected to MongoDB Atlas');
     await seedAdmin();
   } catch (err) {
@@ -269,7 +275,7 @@ app.get('/api/messages/:userId', authenticateUser, async (req, res) => {
         ]
       };
     }
-    const messages = await Message.find(query).sort({ createdAt: 1 });
+    const messages = await Message.find(query).sort({ createdAt: 1 }).lean();
 
     // Auto-deliver welcome message if it's the user's first time checking messages
     if (messages.length === 0 && req.params.userId === req.user.id) {
@@ -319,8 +325,25 @@ app.post('/api/messages', authenticateUser, async (req, res) => {
 app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
   try {
     await connectDB();
-    const users = await User.find({ role: 'user' }).select('-password');
-    res.json({ success: true, users });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      User.find({ role: 'user' })
+        .select('-password -__v')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      User.countDocuments({ role: 'user' })
+    ]);
+    
+    res.json({ 
+      success: true, 
+      users,
+      pagination: { total, page, pages: Math.ceil(total / limit) }
+    });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users.' });
   }
@@ -339,8 +362,24 @@ app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
 app.get('/api/admin/contacts', authenticateAdmin, async (req, res) => {
   try {
     await connectDB();
-    const contacts = await Contact.find().sort({ createdAt: -1 });
-    res.json({ success: true, contacts });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const [contacts, total] = await Promise.all([
+      Contact.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Contact.countDocuments()
+    ]);
+    
+    res.json({ 
+      success: true, 
+      contacts,
+      pagination: { total, page, pages: Math.ceil(total / limit) }
+    });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch contacts.' });
   }

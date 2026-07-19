@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'motion/react';
 
 const samples = [
@@ -23,6 +24,43 @@ const samples = [
   }
 ];
 
+function LazyVideo({ src }: { src: string }) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && videoRef.current) {
+            videoRef.current.play().catch(e => console.log('Autoplay prevented:', e));
+          } else if (videoRef.current) {
+            videoRef.current.pause();
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    if (videoRef.current) {
+      observer.observe(videoRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      loop
+      muted
+      playsInline
+      preload="none"
+      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+    />
+  );
+}
+
 export default function SampleVideoData() {
   return (
     <section id="sample-data" className="py-24 relative overflow-hidden">
@@ -43,19 +81,12 @@ export default function SampleVideoData() {
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "100px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-md overflow-hidden group cursor-pointer"
             >
               <div className="relative aspect-video overflow-hidden bg-slate-900">
-                <video
-                  src={sample.video}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+                <LazyVideo src={sample.video} />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors pointer-events-none" />
 
                 {/* Category Badge */}

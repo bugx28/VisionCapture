@@ -2,11 +2,12 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import PartnerWithUs from './pages/PartnerWithUs';
-import Contributors from './pages/Contributors';
-import Profile from './pages/Profile';
-import Admin from './pages/Admin';
+
+const Home = React.lazy(() => import('./pages/Home'));
+const PartnerWithUs = React.lazy(() => import('./pages/PartnerWithUs'));
+const Contributors = React.lazy(() => import('./pages/Contributors'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const Admin = React.lazy(() => import('./pages/Admin'));
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -34,13 +35,15 @@ export default function App() {
 
       <Header />
       <div className="min-h-screen text-slate-900 selection:bg-slate-200 relative z-0 max-w-[1600px] mx-auto border-x border-slate-200/50 backdrop-blur-[8px] bg-slate-50/50 shadow-2xl">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/partner-with-us" element={<PartnerWithUs />} />
-          <Route path="/contributors" element={<Contributors />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
+        <React.Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div></div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/partner-with-us" element={<PartnerWithUs />} />
+            <Route path="/contributors" element={<Contributors />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </React.Suspense>
         <Footer />
       </div>
     </Router>

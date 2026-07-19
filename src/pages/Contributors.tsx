@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Briefcase, Globe, CheckCircle2, UserPlus, MonitorPlay, Video, Wallet } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Briefcase, Globe, CheckCircle2, UserPlus, MonitorPlay, Video, Wallet, MessageSquare } from 'lucide-react';
 
 export default function Contributors() {
   const [formData, setFormData] = useState({
@@ -13,6 +13,19 @@ export default function Contributors() {
   const [agreed, setAgreed] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending_otp' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token') || !!localStorage.getItem('adminToken'));
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsLoggedIn(!!localStorage.getItem('token') || !!localStorage.getItem('adminToken'));
+    };
+    window.addEventListener('authChange', checkAuth);
+    window.addEventListener('storage', checkAuth);
+    return () => {
+      window.removeEventListener('authChange', checkAuth);
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -226,135 +239,152 @@ export default function Contributors() {
         </div>
       </div>
 
-      <div id="registration-form" className="max-w-4xl mx-auto px-4 scroll-mt-28">
-        <form noValidate onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-10 space-y-6">
-          {status === 'error' && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium text-center">
-              {errorMessage}
+      {isLoggedIn ? (
+        <div className="max-w-4xl mx-auto px-4 scroll-mt-28 mb-24 text-center">
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-10 sm:p-16 flex flex-col items-center">
+            <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+              <MessageSquare className="w-8 h-8" />
             </div>
-          )}
-
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Full Name *</label>
-              <input type="text" name="fullName" required value={formData.fullName} onChange={handleInputChange} placeholder="Enter your full name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Email *</label>
-              <div className="flex gap-2">
-                <input type="email" name="email" required value={formData.email} onChange={handleInputChange} disabled={otpSent} placeholder="Enter your email address" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 disabled:opacity-50" />
-                {!otpSent && (
-                  <button type="button" onClick={sendOtp} disabled={status === 'sending_otp'} className="px-4 py-3 bg-slate-900 text-white rounded-xl font-semibold whitespace-nowrap text-sm disabled:opacity-70">
-                    {status === 'sending_otp' ? 'Sending...' : 'Send OTP'}
-                  </button>
-                )}
-              </div>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">Message us for project onboarding</h2>
+            <p className="text-slate-600 mb-8 max-w-lg">
+              You already have an active account. Head over to your dashboard to chat with our team and start your onboarding process.
+            </p>
+            <a href={localStorage.getItem('adminToken') ? "/admin" : "/profile"} className="px-8 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors inline-block shadow-lg shadow-slate-900/20">
+              Open Chat Box
+            </a>
           </div>
+        </div>
+      ) : (
+        <div id="registration-form" className="max-w-4xl mx-auto px-4 scroll-mt-28">
+          <form noValidate onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-6 sm:p-10 space-y-6">
+            {status === 'error' && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium text-center">
+                {errorMessage}
+              </div>
+            )}
 
-          {otpSent && (
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-900">Enter OTP *</label>
-                <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required placeholder="6-digit OTP" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
-                <p className="text-xs text-slate-500 mt-1">Please check your spam or junk folder also for otp.</p>
+                <label className="text-sm font-bold text-slate-900">Full Name *</label>
+                <input type="text" name="fullName" required value={formData.fullName} onChange={handleInputChange} placeholder="Enter your full name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-900">Password *</label>
-                <input type="password" name="password" required value={formData.password} onChange={handleInputChange} placeholder="Create a strong password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <label className="text-sm font-bold text-slate-900">Email *</label>
+                <div className="flex gap-2">
+                  <input type="email" name="email" required value={formData.email} onChange={handleInputChange} disabled={otpSent} placeholder="Enter your email address" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 disabled:opacity-50" />
+                  {!otpSent && (
+                    <button type="button" onClick={sendOtp} disabled={status === 'sending_otp'} className="px-4 py-3 bg-slate-900 text-white rounded-xl font-semibold whitespace-nowrap text-sm disabled:opacity-70">
+                      {status === 'sending_otp' ? 'Sending...' : 'Send OTP'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          )}
 
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">City *</label>
-              <input type="text" name="city" required value={formData.city} onChange={handleInputChange} placeholder="e.g. New York" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Country *</label>
-              <input type="text" name="country" required value={formData.country} onChange={handleInputChange} placeholder="e.g. USA" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
-            </div>
-          </div>
+            {otpSent && (
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-900">Enter OTP *</label>
+                  <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required placeholder="6-digit OTP" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                  <p className="text-xs text-slate-500 mt-1">Please check your spam or junk folder also for otp.</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-900">Password *</label>
+                  <input type="password" name="password" required value={formData.password} onChange={handleInputChange} placeholder="Create a strong password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                </div>
+              </div>
+            )}
 
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Native Language *</label>
-              <input type="text" name="nativeLanguage" required value={formData.nativeLanguage} onChange={handleInputChange} placeholder="e.g. English" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-900">City *</label>
+                <input type="text" name="city" required value={formData.city} onChange={handleInputChange} placeholder="e.g. New York" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-900">Country *</label>
+                <input type="text" name="country" required value={formData.country} onChange={handleInputChange} placeholder="e.g. USA" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Additional Language</label>
-              <input type="text" name="additionalLanguage" value={formData.additionalLanguage} onChange={handleInputChange} placeholder="e.g. Spanish (Optional)" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
-            </div>
-          </div>
 
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Phone *</label>
-              <input type="tel" name="phone" required value={formData.phone} onChange={handleInputChange} placeholder="+91 234 567 8900" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-900">Native Language *</label>
+                <input type="text" name="nativeLanguage" required value={formData.nativeLanguage} onChange={handleInputChange} placeholder="e.g. English" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-900">Additional Language</label>
+                <input type="text" name="additionalLanguage" value={formData.additionalLanguage} onChange={handleInputChange} placeholder="e.g. Spanish (Optional)" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              </div>
             </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-900">Phone *</label>
+                <input type="tel" name="phone" required value={formData.phone} onChange={handleInputChange} placeholder="+91 234 567 8900" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-900">Experience *</label>
+                <select name="experience" required value={formData.experience} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                  <option value="">Select experience</option>
+                  <option value="No experience">No experience</option>
+                  <option value="Less than 1 year">Less than 1 year</option>
+                  <option value="1-2 years">1-2 years</option>
+                  <option value="3-5 years">3-5 years</option>
+                </select>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900">Experience *</label>
-              <select name="experience" required value={formData.experience} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                <option value="">Select experience</option>
-                <option value="No experience">No experience</option>
-                <option value="Less than 1 year">Less than 1 year</option>
-                <option value="1-2 years">1-2 years</option>
-                <option value="3-5 years">3-5 years</option>
+              <label className="text-sm font-bold text-slate-900">How did you find us? *</label>
+              <select name="howFoundUs" required value={formData.howFoundUs} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                <option value="">Select an option</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Google search">Google search</option>
+                <option value="Reddit">Reddit</option>
+                <option value="Youtube">Youtube</option>
+                <option value="Other">Other</option>
               </select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-900">How did you find us? *</label>
-            <select name="howFoundUs" required value={formData.howFoundUs} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-              <option value="">Select an option</option>
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="Google search">Google search</option>
-              <option value="Reddit">Reddit</option>
-              <option value="Youtube">Youtube</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-900">Projects Interested In *</label>
-            <div className="flex flex-wrap gap-3">
-              {['Egocentric Video', 'Data Annotation', 'Data Collection', 'Field work Operator', 'Transcription', 'Audio Recording', 'Survey', 'Image Collection'].map(proj => (
-                <button
-                  key={proj}
-                  type="button"
-                  onClick={() => handleProjectToggle(proj)}
-                  className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${formData.projectsInterestedIn.includes(proj) ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}
-                >
-                  {proj}
-                </button>
-              ))}
+            <div className="space-y-3">
+              <label className="text-sm font-bold text-slate-900">Projects Interested In *</label>
+              <div className="flex flex-wrap gap-3">
+                {['Egocentric Video', 'Data Annotation', 'Data Collection', 'Field work Operator', 'Transcription', 'Audio Recording', 'Survey', 'Image Collection'].map(proj => (
+                  <button
+                    key={proj}
+                    type="button"
+                    onClick={() => handleProjectToggle(proj)}
+                    className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${formData.projectsInterestedIn.includes(proj) ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}
+                  >
+                    {proj}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3 pt-2">
-            <input
-              type="checkbox"
-              id="terms"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-            />
-            <label htmlFor="terms" className="text-sm text-slate-700">
-              I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
-            </label>
-          </div>
+            <div className="flex items-center gap-3 pt-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+              />
+              <label htmlFor="terms" className="text-sm text-slate-700">
+                I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+              </label>
+            </div>
 
-          <button
-            type="submit"
-            disabled={status === 'submitting'}
-            className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-4 rounded-xl transition-colors disabled:opacity-50 mt-4"
-          >
-            {status === 'submitting' ? 'Registering...' : 'Complete Registration'}
-          </button>
-        </form>
-      </div>
+            <button
+              type="submit"
+              disabled={status === 'submitting'}
+              className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold py-4 rounded-xl transition-colors disabled:opacity-50 mt-4"
+            >
+              {status === 'submitting' ? 'Registering...' : 'Complete Registration'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
