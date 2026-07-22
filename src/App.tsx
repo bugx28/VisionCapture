@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <Router>
       <Analytics />
+      <SpeedInsights />
       <ScrollToTop />
       {/* Liquid Display Background */}
       <div className="fixed inset-0 z-[-1] overflow-hidden bg-slate-50">
