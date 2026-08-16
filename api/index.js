@@ -6,23 +6,23 @@ import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import compression from 'compression';
-import Contact from './models/Contact.js';
-import User from './models/User.js';
-import Message from './models/Message.js';
-import Project from './models/Project.js';
-import PlatformStats from './models/PlatformStats.js';
-import Referral from './models/Referral.js';
-import ReferralSettings from './models/ReferralSettings.js';
-import Application from './models/Application.js';
-import Submission from './models/Submission.js';
-import Payment from './models/Payment.js';
-import ProjectMessage from './models/ProjectMessage.js';
-import Notification from './models/Notification.js';
-import Consent from './models/Consent.js';
+import Contact from '../models/Contact.js';
+import User from '../models/User.js';
+import Message from '../models/Message.js';
+import Project from '../models/Project.js';
+import PlatformStats from '../models/PlatformStats.js';
+import Referral from '../models/Referral.js';
+import ReferralSettings from '../models/ReferralSettings.js';
+import Application from '../models/Application.js';
+import Submission from '../models/Submission.js';
+import Payment from '../models/Payment.js';
+import ProjectMessage from '../models/ProjectMessage.js';
+import Notification from '../models/Notification.js';
+import Consent from '../models/Consent.js';
 import { waitUntil } from '@vercel/functions';
 import multer from 'multer';
 import { put, del } from '@vercel/blob';
-import ApprovalRequest from './models/ApprovalRequest.js';
+import ApprovalRequest from '../models/ApprovalRequest.js';
 
 const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
@@ -229,24 +229,24 @@ app.post('/api/auth/register', async (req, res) => {
 
     await connectDB();
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     // Generate unique referral code
     const referralCode = 'VC' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    
+
     let referredByUserId = null;
     if (referredByCode) {
       const referrer = await User.findOne({ referralCode: referredByCode });
       if (referrer) referredByUserId = referrer._id;
     }
 
-    const newUser = new User({ 
-      fullName, 
-      email, 
-      password: hashedPassword, 
-      isVerified: true, 
+    const newUser = new User({
+      fullName,
+      email,
+      password: hashedPassword,
+      isVerified: true,
       referralCode,
       referredBy: referredByUserId,
-      ...otherDetails 
+      ...otherDetails
     });
     await newUser.save();
 
@@ -404,13 +404,13 @@ app.post('/api/admin/create-pm', authenticateAdmin, async (req, res) => {
     if (existingUser) return res.status(400).json({ error: 'User with this email already exists.' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newPm = new User({ 
-      email, 
-      password: hashedPassword, 
+    const newPm = new User({
+      email,
+      password: hashedPassword,
       role: 'project_manager',
-      isVerified: true 
+      isVerified: true
     });
-    
+
     await newPm.save();
     res.status(201).json({ success: true, message: 'Project Manager created successfully.' });
   } catch (error) {
@@ -557,9 +557,9 @@ app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
         .lean(),
       User.countDocuments(query)
     ]);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       users,
       pagination: { total, page, pages: Math.ceil(total / limit) }
     });
@@ -605,9 +605,9 @@ app.get('/api/admin/contacts', authenticateAdmin, async (req, res) => {
         .lean(),
       Contact.countDocuments()
     ]);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       contacts,
       pagination: { total, page, pages: Math.ceil(total / limit) }
     });
@@ -633,16 +633,16 @@ app.delete('/api/admin/contacts/:id', authenticateAdmin, async (req, res) => {
 app.post('/api/pm/projects', authenticatePM, async (req, res) => {
   try {
     await connectDB();
-    
+
     // Parse boolean fields that might come as strings if sent from older FormData
     const homepageVisible = req.body.homepageVisible === 'true' || req.body.homepageVisible === true;
     const contributorVisible = req.body.contributorVisible === 'true' || req.body.contributorVisible === true;
 
-    const projectData = { 
-      ...req.body, 
+    const projectData = {
+      ...req.body,
       homepageVisible,
       contributorVisible,
-      createdBy: req.user.id 
+      createdBy: req.user.id
     };
 
     if (req.body.publicCoverImage) {
@@ -676,12 +676,12 @@ app.get('/api/pm/projects', authenticatePM, async (req, res) => {
 app.put('/api/pm/projects/:id', authenticatePM, async (req, res) => {
   try {
     await connectDB();
-    
+
     // Parse boolean fields
     const homepageVisible = req.body.homepageVisible === 'true' || req.body.homepageVisible === true;
     const contributorVisible = req.body.contributorVisible === 'true' || req.body.contributorVisible === true;
 
-    const updateData = { 
+    const updateData = {
       ...req.body,
       homepageVisible,
       contributorVisible
@@ -728,7 +728,7 @@ app.get('/api/pm/egocentric/project', authenticatePM, async (req, res) => {
   try {
     await connectDB();
     let egoProject = await Project.findOne({ isEgocentric: true });
-    
+
     if (!egoProject) {
       return res.status(404).json({ error: 'Egocentric project not found.' });
     }
@@ -927,27 +927,27 @@ app.get('/api/public/leaderboard', async (req, res) => {
     }
 
     const manualAdj = settings.manualAdjustments ? Object.fromEntries(settings.manualAdjustments) : {};
-    
+
     // Convert manual adjustments to an array of { userId, count }
     const leaderboardData = [];
     for (const [userId, count] of Object.entries(manualAdj)) {
       const user = await User.findById(userId).select('fullName email');
       if (user) {
-        leaderboardData.push({ 
-          userId, 
-          name: user.fullName || user.email.split('@')[0], 
-          count: count 
+        leaderboardData.push({
+          userId,
+          name: user.fullName || user.email.split('@')[0],
+          count: count
         });
       }
     }
-    
+
     // Sort descending
     leaderboardData.sort((a, b) => b.count - a.count);
-    
+
     // Assign ranks and prizes
     let prizes = [];
-    try { prizes = JSON.parse(settings.prizeAmounts); } catch(e){}
-    
+    try { prizes = JSON.parse(settings.prizeAmounts); } catch (e) { }
+
     const finalLeaderboard = leaderboardData.map((entry, index) => {
       const rank = index + 1;
       const prizeObj = prizes.find(p => p.rank === rank);
@@ -977,7 +977,7 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const { otp, profileData } = req.body; console.log("Profile update body:", req.body);
-    
+
     // Verify OTP
     if (!otp) return res.status(400).json({ error: 'OTP is required.' });
     const storedOtpData = otpStore.get(user.email);
@@ -992,10 +992,10 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
         user[field] = profileData[field];
       }
     }
-    
+
     await user.save();
     otpStore.delete(user.email); // Clear OTP
-    
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update profile' });
@@ -1006,7 +1006,7 @@ app.put('/api/user/password', authenticateUser, async (req, res) => {
   try {
     await connectDB();
     const { oldPassword, newPassword } = req.body;
-    
+
     if (!oldPassword || !newPassword) {
       return res.status(400).json({ error: 'Old password and new password are required.' });
     }
@@ -1022,7 +1022,7 @@ app.put('/api/user/password', authenticateUser, async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
-    
+
     res.json({ success: true, message: 'Password changed successfully.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to change password' });
@@ -1097,7 +1097,7 @@ app.post('/api/submissions', authenticateUser, async (req, res) => {
   try {
     await connectDB();
     const { id, projectId, externalProjectId, notes, submissionLink, additionalComments } = req.body;
-    
+
     if (id) {
       // User is resubmitting after a Rework request
       const existingSub = await Submission.findById(id);
@@ -1153,7 +1153,7 @@ app.put('/api/submissions/:id', authenticatePM, async (req, res) => {
     if (!oldSub) return res.status(404).json({ error: 'Submission not found' });
 
     const sub = await Submission.findByIdAndUpdate(req.params.id, { status, feedback }, { returnDocument: 'after' });
-    
+
     if (oldSub.status !== 'Completed' && status === 'Completed') {
       await User.findByIdAndUpdate(sub.contributorId, { $inc: { trustScore: 1 } });
     } else if (oldSub.status === 'Completed' && status !== 'Completed') {
@@ -1321,17 +1321,17 @@ app.get('/api/pm/contributors-analysis', authenticatePM, async (req, res) => {
   try {
     await connectDB();
     const users = await User.find({ role: 'user' }).lean();
-    
+
     const applications = await Application.find().lean();
     const submissions = await Submission.find().lean();
-    
+
     // Attach applied project IDs and work status to each user for PM dashboard convenience
     const usersWithApps = users.map(u => {
       const userApps = applications.filter(a => a.contributorId.toString() === u._id.toString());
       const completedProjectIds = [...new Set(submissions
         .filter(s => s.contributorId.toString() === u._id.toString() && s.status === 'Completed')
         .map(s => s.projectId.toString()))];
-        
+
       return {
         ...u,
         appliedProjectIds: [...new Set(userApps.map(a => a.projectId.toString()))],
