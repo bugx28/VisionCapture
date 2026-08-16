@@ -1,0 +1,15 @@
+# Vision Capture AI Documentation
+
+Welcome to the Vision Capture documentation for AI agents and LLMs. 
+Vision Capture is India's premier AI data collection company, specializing in high-quality egocentric data for Physical AI, robotics, and embodied intelligent systems.
+
+## Relevant Links
+
+Here are the most important links to navigate our site data:
+- [Sitemap](https://visioncapture.in/sitemap.xml)
+- [Home Page](https://visioncapture.in/)
+- [Partner with us](https://visioncapture.in/partner-with-us)
+- [Contributors Portal](https://visioncapture.in/contributors)
+
+## About Us
+We empower the future of Embodied AI and Robotics with high-quality, large-scale dataset collection tailored for Foundation Models and Generative AI.

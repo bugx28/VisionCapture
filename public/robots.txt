@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /admin
+Disallow: /project-manager
+Disallow: /signup
+Disallow: /api/
+
+Sitemap: https://visioncapture.in/sitemap.xml

@@ -11,9 +11,13 @@ const ContactSchema = new mongoose.Schema({
   },
   company: {
     type: String,
+    required: false,
+  },
+  serviceType: {
+    type: String,
     required: true,
   },
-  project: {
+  message: {
     type: String,
     required: true,
   },

@@ -1,13 +1,18 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const Home = React.lazy(() => import('./pages/Home'));
 const PartnerWithUs = React.lazy(() => import('./pages/PartnerWithUs'));
 const Contributors = React.lazy(() => import('./pages/Contributors'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Admin = React.lazy(() => import('./pages/Admin'));
+const ProjectManager = React.lazy(() => import('./pages/ProjectManager'));
+const Leaderboard = React.lazy(() => import('./pages/Leaderboard'));
+const Signup = React.lazy(() => import('./pages/Signup'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -35,15 +40,24 @@ export default function App() {
 
       <Header />
       <div className="min-h-screen text-slate-900 selection:bg-slate-200 relative z-0 max-w-[1600px] mx-auto border-x border-slate-200/50 backdrop-blur-[8px] bg-slate-50/50 shadow-2xl">
-        <React.Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div></div>}>
-          <Routes>
+        <ErrorBoundary>
+          <React.Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div></div>}>
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/partner-with-us" element={<PartnerWithUs />} />
             <Route path="/contributors" element={<Contributors />} />
+            {/* Redirect legacy route */}
+            <Route path="/active-projects" element={<Navigate to="/contributors" replace />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<Profile />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/admin" element={<Admin />} />
-          </Routes>
-        </React.Suspense>
+            <Route path="/project-manager" element={<ProjectManager />} />
+            <Route path="*" element={<NotFound />} />
+            </Routes>
+          </React.Suspense>
+        </ErrorBoundary>
         <Footer />
       </div>
     </Router>

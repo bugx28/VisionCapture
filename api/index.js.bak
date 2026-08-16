@@ -22,7 +22,6 @@ import Consent from './models/Consent.js';
 import { waitUntil } from '@vercel/functions';
 import multer from 'multer';
 import { put, del } from '@vercel/blob';
-import ApprovalRequest from './models/ApprovalRequest.js';
 
 const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
@@ -439,101 +438,6 @@ app.delete('/api/admin/pms/:id', authenticateAdmin, async (req, res) => {
   }
 });
 
-app.put('/api/admin/pms/:id', authenticateAdmin, async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const updateData = {};
-    if (email) {
-      if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format.' });
-      updateData.email = email.toLowerCase();
-    }
-    if (password) {
-      if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
-      updateData.password = await bcrypt.hash(password, 10);
-    }
-
-    await connectDB();
-    if (updateData.email) {
-      const existingUser = await User.findOne({ email: updateData.email, _id: { $ne: req.params.id } });
-      if (existingUser) return res.status(400).json({ error: 'User with this email already exists.' });
-    }
-
-    const updatedPm = await User.findOneAndUpdate(
-      { _id: req.params.id, role: 'project_manager' },
-      updateData,
-      { new: true }
-    );
-    if (!updatedPm) return res.status(404).json({ error: 'Project Manager not found.' });
-
-    res.json({ success: true, message: 'Project Manager updated successfully.' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update Project Manager.' });
-  }
-});
-
-// =======================
-
-app.get('/api/admin/approvals', authenticateAdmin, async (req, res) => {
-  try {
-    await connectDB();
-    const approvals = await ApprovalRequest.find({ status: 'pending' })
-      .populate('requestedBy', 'email')
-      .populate('projectId', 'title')
-      .sort({ createdAt: -1 });
-    res.json({ success: true, approvals });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch pending approvals.' });
-  }
-});
-
-app.post('/api/admin/approvals/:id/approve', authenticateAdmin, async (req, res) => {
-  try {
-    await connectDB();
-    const approval = await ApprovalRequest.findById(req.params.id);
-    if (!approval || approval.status !== 'pending') return res.status(404).json({ error: 'Pending approval not found.' });
-
-    if (approval.type === 'CREATE_PROJECT') {
-      const project = new Project(approval.payload);
-      await project.save();
-    } else if (approval.type === 'UPDATE_PROJECT') {
-      const updateData = { ...approval.payload };
-      if (updateData._removeCoverImage) {
-        const existingProject = await Project.findById(approval.projectId);
-        if (existingProject && existingProject.coverImage && existingProject.coverImage.pathname) {
-          await del(existingProject.coverImage.pathname).catch(console.error);
-        }
-        delete updateData._removeCoverImage;
-      }
-      await Project.findByIdAndUpdate(approval.projectId, updateData);
-    } else if (approval.type === 'UPDATE_EGOCENTRIC') {
-      await Project.findByIdAndUpdate(approval.projectId, approval.payload);
-    }
-
-    approval.status = 'approved';
-    await approval.save();
-    res.json({ success: true, message: 'Approved successfully.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to approve request.' });
-  }
-});
-
-app.post('/api/admin/approvals/:id/reject', authenticateAdmin, async (req, res) => {
-  try {
-    await connectDB();
-    const approval = await ApprovalRequest.findById(req.params.id);
-    if (!approval || approval.status !== 'pending') return res.status(404).json({ error: 'Pending approval not found.' });
-
-    approval.status = 'rejected';
-    if (req.body.adminNotes) approval.adminNotes = req.body.adminNotes;
-    await approval.save();
-
-    res.json({ success: true, message: 'Rejected successfully.' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to reject request.' });
-  }
-});
-
 // =======================
 
 app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
@@ -649,17 +553,12 @@ app.post('/api/pm/projects', authenticatePM, async (req, res) => {
       projectData.coverImage = { url: `/${req.body.publicCoverImage.trim()}`, pathname: '' };
     }
 
-    const approval = new ApprovalRequest({
-      type: 'CREATE_PROJECT',
-      requestedBy: req.user.id,
-      payload: projectData
-    });
-    await approval.save();
-
-    res.status(201).json({ success: true, message: 'Project creation request sent for admin approval.', requestId: approval._id });
+    const project = new Project(projectData);
+    await project.save();
+    res.status(201).json({ success: true, project });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to create project approval request.' });
+    res.status(500).json({ error: 'Failed to create project.' });
   }
 });
 
@@ -705,19 +604,14 @@ app.put('/api/pm/projects/:id', authenticatePM, async (req, res) => {
     }
 
     if (req.body.removeCoverImage === 'true' || req.body.removeCoverImage === true) {
+      if (existingProject.coverImage && existingProject.coverImage.pathname) {
+        await del(existingProject.coverImage.pathname).catch(console.error);
+      }
       updateData.coverImage = { url: '', pathname: '' };
-      updateData._removeCoverImage = true;
     }
 
-    const approval = new ApprovalRequest({
-      type: 'UPDATE_PROJECT',
-      projectId: req.params.id,
-      requestedBy: req.user.id,
-      payload: updateData
-    });
-    await approval.save();
-
-    res.json({ success: true, message: 'Project update request sent for admin approval.', requestId: approval._id });
+    const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json({ success: true, project });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update project.' });
   }
@@ -751,27 +645,31 @@ app.put('/api/pm/egocentric/project', authenticatePM, async (req, res) => {
       projectInstructions: req.body.projectInstructions
     };
 
-    const approval = new ApprovalRequest({
-      type: 'UPDATE_EGOCENTRIC',
-      projectId: existingProject._id,
-      requestedBy: req.user.id,
-      payload: updateData
-    });
-    await approval.save();
-
-    res.json({ success: true, message: 'Egocentric project update request sent for admin approval.' });
+    const updated = await Project.findByIdAndUpdate(existingProject._id, updateData, { returnDocument: 'after' });
+    res.json({ success: true, project: updated });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update Egocentric project.' });
   }
 });
 
-app.post('/api/pm/upload/cover', authenticatePM, upload.single('coverImage'), async (req, res) => {
+app.post('/api/pm/projects/:id/cover', authenticatePM, upload.single('coverImage'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
+    console.log("DEBUG: Token starts with:", process.env.BLOB_READ_WRITE_TOKEN ? process.env.BLOB_READ_WRITE_TOKEN.substring(0, 15) : "UNDEFINED");
+    
+    await connectDB();
+    const existingProject = await Project.findById(req.params.id);
+    if (!existingProject) return res.status(404).json({ error: 'Project not found.' });
+
+    // Delete old image if exists
+    if (existingProject.coverImage && existingProject.coverImage.pathname) {
+      await del(existingProject.coverImage.pathname).catch(console.error);
+    }
+
     const ext = req.file.originalname.split('.').pop();
     const uniqueName = `cover-${Date.now()}.${ext}`;
-    const pathname = `pending-uploads/${uniqueName}`;
+    const pathname = `projects/${existingProject._id}/cover/${uniqueName}`;
 
     const blobResult = await put(pathname, req.file.buffer, {
       access: 'public',
@@ -779,22 +677,13 @@ app.post('/api/pm/upload/cover', authenticatePM, upload.single('coverImage'), as
       token: process.env.BLOB_READ_WRITE_TOKEN
     });
 
-    res.json({ success: true, url: blobResult.url, pathname: blobResult.pathname });
+    existingProject.coverImage = { url: blobResult.url, pathname: blobResult.pathname };
+    await existingProject.save();
+
+    res.json({ success: true, project: existingProject });
   } catch (err) {
     console.error('Error uploading cover image:', err);
     res.status(500).json({ error: 'Failed to upload cover image.' });
-  }
-});
-
-app.get('/api/pm/approvals', authenticatePM, async (req, res) => {
-  try {
-    await connectDB();
-    const approvals = await ApprovalRequest.find({ requestedBy: req.user.id })
-      .populate('projectId', 'title')
-      .sort({ createdAt: -1 });
-    res.json({ success: true, approvals });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch approvals.' });
   }
 });
 
@@ -827,7 +716,6 @@ app.get('/api/public/projects/homepage', async (req, res) => {
   try {
     await connectDB();
     const projects = await Project.find({ homepageVisible: true, status: 'active' }).sort({ createdAt: -1 });
-    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     res.json({ success: true, projects });
   } catch (err) {
     console.error('Error fetching homepage projects:', err);
@@ -838,8 +726,12 @@ app.get('/api/public/projects/homepage', async (req, res) => {
 app.get('/api/public/projects/contributor', async (req, res) => {
   try {
     await connectDB();
-    const projects = await Project.find({ contributorVisible: true, status: 'active' }).sort({ createdAt: -1 });
-    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    const projects = await Project.find({ 
+      $or: [
+        { contributorVisible: true, status: 'active' },
+        { isEgocentric: true, status: 'active' }
+      ]
+    }).sort({ createdAt: -1 });
     res.json({ success: true, projects });
   } catch (err) {
     console.error('Error fetching contributor projects:', err);
@@ -854,7 +746,6 @@ app.get('/api/public/platform-stats', async (req, res) => {
       PlatformStats.findOne() || new PlatformStats(),
       User.countDocuments({ role: 'user' })
     ]);
-    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     res.json({ success: true, stats, totalContributors });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch platform stats.' });
@@ -921,10 +812,7 @@ app.get('/api/public/leaderboard', async (req, res) => {
     // or return an empty array if no referals exist yet.
     // Since manual adjustments are supported, we will use that as the primary driver.
     const settings = await ReferralSettings.findOne();
-    if (!settings) {
-      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-      return res.json({ success: true, leaderboard: [] });
-    }
+    if (!settings) return res.json({ success: true, leaderboard: [] });
 
     const manualAdj = settings.manualAdjustments ? Object.fromEntries(settings.manualAdjustments) : {};
     
@@ -958,7 +846,6 @@ app.get('/api/public/leaderboard', async (req, res) => {
       };
     });
 
-    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     res.json({ success: true, leaderboard: finalLeaderboard });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch leaderboard.' });
@@ -976,7 +863,7 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const { otp, profileData } = req.body; console.log("Profile update body:", req.body);
+    const { otp, profileData } = req.body;
     
     // Verify OTP
     if (!otp) return res.status(400).json({ error: 'OTP is required.' });
@@ -1246,9 +1133,11 @@ app.post('/api/project-messages/:projectId', authenticateUser, async (req, res) 
 app.put('/api/project-messages/:projectId/read', authenticateUser, async (req, res) => {
   try {
     await connectDB();
-    const filter = { projectId: req.params.projectId, receiverId: req.user.id, isRead: false };
-    if (req.body.senderId) filter.senderId = req.body.senderId;
-    await ProjectMessage.updateMany(filter, { $set: { isRead: true } });
+    // Mark all messages in this project where receiver is current user as read
+    await ProjectMessage.updateMany(
+      { projectId: req.params.projectId, receiverId: req.user.id, isRead: false },
+      { $set: { isRead: true } }
+    );
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to mark as read' });
@@ -1265,8 +1154,7 @@ app.get('/api/user/unread-messages', authenticateUser, async (req, res) => {
     const unreadMessages = await ProjectMessage.find(query).populate('projectId').lean();
     const validUnreadMessages = unreadMessages.filter(m => m.projectId !== null);
     const unreadProjectIds = [...new Set(validUnreadMessages.map(m => m.projectId._id.toString()))];
-    const unreadSenderIds = [...new Set(validUnreadMessages.map(m => m.senderId.toString()))];
-    res.json({ success: true, hasUnread: validUnreadMessages.length > 0, count: validUnreadMessages.length, unreadProjectIds, unreadSenderIds });
+    res.json({ success: true, hasUnread: validUnreadMessages.length > 0, count: validUnreadMessages.length, unreadProjectIds });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch unread messages' });
   }

@@ -1,4 +1,4 @@
-import { MapPin, Mail, Linkedin, Twitter } from 'lucide-react';
+import { MapPin, Mail, Linkedin, Twitter, Facebook, Instagram, Youtube } from 'lucide-react';
 import logo from '../assets/logo.svg';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ export default function Footer() {
               <img
                 src={logo}
                 alt="Vision Capture Logo"
+                loading="lazy"
                 className="h-8 md:h-10 w-auto filter grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
               />
             </div>
@@ -20,11 +21,20 @@ export default function Footer() {
               India's premier AI data collection company specializing in high-quality egocentric data for Physical AI, robotics, and embodied intelligent systems.
             </p>
             <div className="flex gap-4">
-              <a href="https://www.linkedin.com/company/visioncaptureai/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+              <a href="https://linkedin.com/company/visioncaptureai/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+              <a href="https://x.com/visioncaptureai" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
                 <Twitter className="w-4 h-4" />
+              </a>
+              <a href="https://instagram.com/visioncaptureai" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="https://facebook.com/visioncaptureai" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="https://youtube.com/@visioncaptureai" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+                <Youtube className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -36,6 +46,7 @@ export default function Footer() {
               <li><a href="/#what-we-record" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Data Categories</a></li>
               <li><a href="/#sample-data" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Sample Data</a></li>
               <li><Link to="/contributors" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Careers</Link></li>
+              <li><Link to="/partner-with-us" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">Contact</Link></li>
             </ul>
           </div>
 
