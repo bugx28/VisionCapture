@@ -634,7 +634,7 @@ export default function Profile() {
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* Sidebar Navigation */}
-          <div className="w-full lg:w-64 shrink-0 flex flex-col gap-2">
+          <div className="w-full lg:w-64 shrink-0 flex overflow-x-auto lg:flex-col gap-2 pb-4 lg:pb-0 scrollbar-hide">
             {[
               { id: 'overview', icon: Search, label: 'Overview' },
               { id: 'available', icon: Briefcase, label: 'Available Projects' },
@@ -652,10 +652,10 @@ export default function Profile() {
                   window.location.hash = tab.id; 
                   if (tab.id === 'messages') setSelectedChatProject(null);
                 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left relative ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white text-slate-600 hover:bg-slate-100'}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left whitespace-nowrap relative ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white text-slate-600 hover:bg-slate-100'}`}
               >
                 <tab.icon className="w-5 h-5 shrink-0" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <span>{tab.label}</span>
                 {tab.id === 'messages' && unreadMessagesData?.hasUnread && (
                   <span className="absolute top-3 right-4 w-2.5 h-2.5 bg-red-500 rounded-full shadow-sm shadow-red-500/50"></span>
                 )}
@@ -1070,8 +1070,8 @@ export default function Profile() {
             {activeTab === 'payments' && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Payment History</h2>
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <table className="w-full text-left text-sm">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
                         <th className="p-4 font-bold text-slate-900">Date</th>

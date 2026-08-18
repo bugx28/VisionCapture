@@ -38,10 +38,19 @@
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation; /* Eliminate 300ms mobile tap delay globally */
+  -webkit-tap-highlight-color: transparent; /* Remove default blue tap box */
 }
 
 body {
   @apply bg-slate-50 text-slate-900 font-sans antialiased;
+}
+
+@layer base {
+  /* Add universal immediate tap feedback to all interactive elements on mobile */
+  button:not(:disabled), a[href] {
+    @apply transition-all duration-150 active:scale-[0.98] active:opacity-90;
+  }
 }
 
 @keyframes liquid-blob {
