@@ -3,7 +3,7 @@ import { ChevronDown, Search } from 'lucide-react';
 import { COUNTRIES, CountryData } from '../utils/countries';
 
 interface CountrySelectProps {
-  value: string; // The country code (e.g., 'US')
+  value: string; // The country name (e.g., 'United States'), with fallback support for legacy codes (e.g., 'US')
   onChange: (value: string) => void;
   error?: boolean;
 }
@@ -15,7 +15,8 @@ export default function CountrySelect({ value, onChange, error }: CountrySelectP
 
   // Initialize search with selected country name if value exists
   useEffect(() => {
-    const selectedCountry = COUNTRIES.find(c => c.code === value);
+    // Support both full names and legacy 2-letter codes
+    const selectedCountry = COUNTRIES.find(c => c.name === value || c.code === value);
     if (selectedCountry && !isOpen) {
       setSearch(selectedCountry.name);
     }
@@ -25,7 +26,7 @@ export default function CountrySelect({ value, onChange, error }: CountrySelectP
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        const selectedCountry = COUNTRIES.find(c => c.code === value);
+        const selectedCountry = COUNTRIES.find(c => c.name === value || c.code === value);
         if (selectedCountry) setSearch(selectedCountry.name);
         else setSearch('');
       }
@@ -75,11 +76,11 @@ export default function CountrySelect({ value, onChange, error }: CountrySelectP
               <div
                 key={country.code}
                 onClick={() => {
-                  onChange(country.code);
+                  onChange(country.name); // Now passing full name instead of code
                   setSearch(country.name);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-3 text-sm cursor-pointer flex justify-between items-center hover:bg-slate-50 transition-colors ${value === country.code ? 'bg-slate-100 font-bold text-slate-900' : 'text-slate-700'}`}
+                className={`px-4 py-3 text-sm cursor-pointer flex justify-between items-center hover:bg-slate-50 transition-colors ${value === country.name || value === country.code ? 'bg-slate-100 font-bold text-slate-900' : 'text-slate-700'}`}
               >
                 <span>{country.name}</span>
                 <span className="text-slate-400 font-medium text-xs">{country.dial_code}</span>

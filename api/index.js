@@ -696,10 +696,14 @@ app.put('/api/pm/projects/:id', authenticatePM, async (req, res) => {
 
     if (updateData.status === 'archived') {
       const completedSubs = await Submission.find({ projectId: req.params.id, status: 'Completed' });
-      for (const sub of completedSubs) {
-        const payment = await Payment.findOne({ projectId: req.params.id, contributorId: sub.contributorId });
-        if (!payment || payment.status !== 'Paid') {
-          return res.status(400).json({ error: 'Cannot archive project: There are completed submissions that have not been paid.' });
+      if (completedSubs.length > 0) {
+        const contributorIds = completedSubs.map(sub => sub.contributorId);
+        const payments = await Payment.find({ projectId: req.params.id, contributorId: { $in: contributorIds } });
+        const paidContributorIds = new Set(payments.filter(p => p.status === 'Paid').map(p => p.contributorId.toString()));
+        for (const sub of completedSubs) {
+          if (!paidContributorIds.has(sub.contributorId.toString())) {
+            return res.status(400).json({ error: 'Cannot archive project: There are completed submissions that have not been paid.' });
+          }
         }
       }
     }
@@ -930,14 +934,21 @@ app.get('/api/public/leaderboard', async (req, res) => {
 
     // Convert manual adjustments to an array of { userId, count }
     const leaderboardData = [];
-    for (const [userId, count] of Object.entries(manualAdj)) {
-      const user = await User.findById(userId).select('fullName email');
-      if (user) {
-        leaderboardData.push({
-          userId,
-          name: user.fullName || user.email.split('@')[0],
-          count: count
-        });
+    const manualAdjUserIds = Object.keys(manualAdj);
+    
+    if (manualAdjUserIds.length > 0) {
+      const users = await User.find({ _id: { $in: manualAdjUserIds } }).select('fullName email');
+      const userMap = new Map(users.map(u => [u._id.toString(), u]));
+      
+      for (const [userId, count] of Object.entries(manualAdj)) {
+        const user = userMap.get(userId);
+        if (user) {
+          leaderboardData.push({
+            userId,
+            name: user.fullName || user.email.split('@')[0],
+            count: count
+          });
+        }
       }
     }
 
@@ -1074,7 +1085,7 @@ app.get('/api/applications/user', authenticateUser, async (req, res) => {
 app.get('/api/applications/project/:projectId', authenticatePM, async (req, res) => {
   try {
     await connectDB();
-    const apps = await Application.find({ projectId: req.params.projectId }).populate('contributorId', 'fullName email country experience');
+    const apps = await Application.find({ projectId: req.params.projectId }).populate('contributorId', 'fullName email country nativeLanguage experience');
     res.json({ success: true, applications: apps });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch' });
@@ -1355,6 +1366,51 @@ app.get('/api/pm/contributors-analysis', authenticatePM, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch contributor analysis' });
+  }
+});
+
+app.post('/api/pm/mail-contributors', authenticatePM, async (req, res) => {
+  try {
+    await connectDB();
+    const { userIds, subject, message } = req.body;
+    if (!userIds || !userIds.length || !subject || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const users = await User.find({ _id: { $in: userIds } }).select('email');
+    const emails = users.map(u => u.email).filter(Boolean);
+
+    if (emails.length === 0) {
+      return res.status(400).json({ error: 'No valid email addresses found' });
+    }
+
+    const senderEmail = process.env.SMTP_USER;
+
+    // Send in chunks of 20 to respect rate limits
+    const chunkSize = 20;
+    for (let i = 0; i < emails.length; i += chunkSize) {
+      const chunk = emails.slice(i, i + chunkSize);
+      
+      const mailOptions = {
+        from: `"Vision Capture" <${senderEmail}>`,
+        bcc: chunk.join(','),
+        subject,
+        text: message,
+        html: `<div style="font-family: sans-serif; white-space: pre-wrap; color: #334155; line-height: 1.6;">${message}</div>`
+      };
+
+      await transporter.sendMail(mailOptions);
+      
+      // Delay between chunks if needed (1s)
+      if (i + chunkSize < emails.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    res.json({ success: true, message: `Successfully queued emails for ${emails.length} contributors.` });
+  } catch (err) {
+    console.error('Mail error:', err);
+    res.status(500).json({ error: 'Failed to send emails' });
   }
 });
 

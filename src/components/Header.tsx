@@ -136,6 +136,53 @@ export default function Header() {
     { name: 'Sample Data', href: '/#sample-data' },
   ];
 
+  const renderNotifications = () => {
+    if (!showNotifications) return null;
+    return (
+      <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] max-h-96 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 z-50">
+        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+          <h3 className="font-bold text-slate-800">Notifications</h3>
+          {unreadCount > 0 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>}
+        </div>
+        <div className="p-2">
+          {notifications.length === 0 ? (
+            <div className="text-sm text-slate-500 text-center py-6">No notifications yet.</div>
+          ) : (
+            notifications.map(n => {
+              const renderMessage = (content: string) => {
+                const urlRegex = /((?:https?:\/\/|www\.)[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{2,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)|(?:[-a-zA-Z0-9@:%_+~#=]{1,256}\.(?:com|org|net|io|co|in|us|uk|me|dev|ai|app)\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)))/gi;
+                if (!content) return null;
+                const parts = content.split(urlRegex);
+                return parts.map((part, i) => {
+                  if (part.match(urlRegex)) {
+                    let href = part;
+                    if (!href.match(/^https?:\/\//i)) href = `https://${href}`;
+                    return (
+                      <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all" onClick={(e) => e.stopPropagation()}>
+                        {part}
+                      </a>
+                    );
+                  }
+                  return part;
+                });
+              };
+              return (
+                <div 
+                  key={n._id} 
+                  onClick={() => !n.isRead && markAsRead(n._id)}
+                  className={`p-3 rounded-xl mb-1 cursor-pointer transition-colors ${n.isRead ? 'opacity-60 hover:bg-slate-50' : 'bg-blue-50/50 border border-blue-100 hover:bg-blue-50'}`}
+                >
+                  <div className="text-sm text-slate-800">{renderMessage(n.message)}</div>
+                  <div className="text-xs text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <header className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-full ${isScrolled
       ? 'top-6 max-w-7xl'
@@ -227,8 +274,19 @@ export default function Header() {
             >
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
+            <Link
+              to="/contributors"
+              className="relative group px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold text-sm transition-all shadow-lg hover:shadow-cyan-500/50"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+              <div className="absolute inset-0 rounded-full overflow-hidden">
+                <span className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-shine"></span>
+              </div>
+              <span className="relative z-10 drop-shadow-md">Record to earn</span>
+            </Link>
+            
             {isRegularUser ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-2">
                 <div className="relative">
                   <button 
                     onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifications(); }} 
@@ -240,49 +298,7 @@ export default function Header() {
                     )}
                   </button>
 
-                  {showNotifications && (
-                    <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 z-50">
-                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                        <h3 className="font-bold text-slate-800">Notifications</h3>
-                        {unreadCount > 0 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>}
-                      </div>
-                      <div className="p-2">
-                        {notifications.length === 0 ? (
-                          <div className="text-sm text-slate-500 text-center py-6">No notifications yet.</div>
-                        ) : (
-                          notifications.map(n => {
-                            const renderMessage = (content: string) => {
-                              const urlRegex = /((?:https?:\/\/|www\.)[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{2,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)|(?:[-a-zA-Z0-9@:%_+~#=]{1,256}\.(?:com|org|net|io|co|in|us|uk|me|dev|ai|app)\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)))/gi;
-                              if (!content) return null;
-                              const parts = content.split(urlRegex);
-                              return parts.map((part, i) => {
-                                if (part.match(urlRegex)) {
-                                  let href = part;
-                                  if (!href.match(/^https?:\/\//i)) href = `https://${href}`;
-                                  return (
-                                    <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all" onClick={(e) => e.stopPropagation()}>
-                                      {part}
-                                    </a>
-                                  );
-                                }
-                                return part;
-                              });
-                            };
-                            return (
-                              <div 
-                                key={n._id} 
-                                onClick={() => !n.isRead && markAsRead(n._id)}
-                                className={`p-3 rounded-xl mb-1 cursor-pointer transition-colors ${n.isRead ? 'opacity-60 hover:bg-slate-50' : 'bg-blue-50/50 border border-blue-100 hover:bg-blue-50'}`}
-                              >
-                                <div className="text-sm text-slate-800">{renderMessage(n.message)}</div>
-                                <div className="text-xs text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {renderNotifications()}
                 </div>
                 <Link
                   to="/profile"
@@ -294,13 +310,6 @@ export default function Header() {
               </div>
             ) : (
               <>
-                <Link
-                  to="/contributors"
-                  className="relative group px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold text-sm transition-all shadow-lg hover:shadow-cyan-500/50"
-                >
-                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                  <span className="relative z-10 drop-shadow-md">Record to earn</span>
-                </Link>
 
                 <Link
                   to="/partner-with-us"
@@ -333,12 +342,44 @@ export default function Header() {
             )}
           </div>
 
-          <button
-            className="xl:hidden p-2 text-slate-600 hover:text-slate-900"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="xl:hidden flex items-center gap-1 sm:gap-2">
+            <Link
+              to="/contributors"
+              className="mr-1 relative overflow-hidden px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-xs sm:text-sm shadow-md"
+            >
+              <span className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-shine"></span>
+              <span className="relative z-10">Record to earn</span>
+            </Link>
+            <button 
+              onClick={toggleTheme} 
+              className="p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            
+            {isRegularUser && (
+              <div className="relative">
+                <button 
+                  onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifications(); }} 
+                  className="relative p-2 text-slate-600 hover:text-blue-600 transition-colors focus:outline-none"
+                >
+                  <Bell className="w-6 h-6" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                  )}
+                </button>
+                {renderNotifications()}
+              </div>
+            )}
+            
+            <button
+              className="p-2 text-slate-600 hover:text-slate-900 rounded-full hover:bg-slate-100"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 

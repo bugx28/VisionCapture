@@ -197,6 +197,7 @@ export default function Profile() {
       return data.user;
     },
     enabled: !!token,
+    staleTime: 60 * 1000,
   });
 
   useEffect(() => {
@@ -232,6 +233,7 @@ export default function Profile() {
       return data.projects || [];
     },
     enabled: !!token,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: myApplications } = useQuery({
@@ -242,6 +244,7 @@ export default function Profile() {
       return data.applications || [];
     },
     enabled: !!token,
+    staleTime: 60 * 1000,
   });
 
   const { data: mySubmissions } = useQuery({
@@ -252,6 +255,7 @@ export default function Profile() {
       return data.submissions || [];
     },
     enabled: !!token,
+    staleTime: 60 * 1000,
   });
 
   const { data: myPayments } = useQuery({
@@ -262,6 +266,7 @@ export default function Profile() {
       return data.payments || [];
     },
     enabled: !!token,
+    staleTime: 60 * 1000,
   });
   const { data: myNotifications } = useQuery({
     queryKey: ['my-notifications', token],
@@ -271,6 +276,7 @@ export default function Profile() {
       return data.notifications || [];
     },
     enabled: !!token,
+    staleTime: 60 * 1000,
   });
 
   const { data: unreadMessagesData } = useQuery({
@@ -282,6 +288,7 @@ export default function Profile() {
     },
     enabled: !!token,
     refetchInterval: 10000, // Poll every 10s for new messages
+    staleTime: 60 * 1000,
   });
 
   const markNotificationAsRead = async (id: string) => {

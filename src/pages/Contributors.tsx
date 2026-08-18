@@ -63,7 +63,7 @@ export default function Contributors() {
                 ].map((step, i) => (
                   <React.Fragment key={i}>
                     {step.isLink ? (
-                      <button onClick={(e) => { e.preventDefault(); handleApply({}); }} className="relative z-10 flex flex-col items-center group w-full md:w-1/4 cursor-pointer">
+                      <button onClick={(e) => { e.preventDefault(); handleApply({ title: 'Hiring: Video Contributors (Remote)' }); }} className="relative z-10 flex flex-col items-center group w-full md:w-1/4 cursor-pointer">
                         <div className="w-16 h-16 rounded-full bg-blue-600 border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)] flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-blue-500 group-hover:shadow-[0_0_25px_rgba(59,130,246,0.8)] transition-all duration-300 mb-4 relative">
                           {step.icon}
                         </div>
@@ -135,7 +135,7 @@ export default function Contributors() {
                   </ul>
                 </div>
                 <button 
-                  onClick={() => handleApply({ title: "General Contributor" })} 
+                  onClick={() => handleApply({ title: "Hiring: Video Contributors (Remote)" })} 
                   className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30 text-lg flex items-center justify-center gap-2 group"
                 >
                   Apply to Earn <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

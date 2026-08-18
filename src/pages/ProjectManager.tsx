@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Plus, Users, FileText, CreditCard, MessageSquare, ArrowLeft, Edit2, Trash2, Send } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Briefcase, Plus, Users, FileText, CreditCard, MessageSquare, ArrowLeft, Edit2, Trash2, Send, Mail, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import FormattedText from '../components/FormattedText';
 import SEO from '../components/SEO';
@@ -89,7 +90,8 @@ export default function ProjectManager() {
       const data = await res.json();
       return data.project || null;
     },
-    enabled: !!token
+    enabled: !!token,
+    staleTime: 60 * 1000
   });
 
   const { data: approvalsData } = useQuery({
@@ -100,7 +102,8 @@ export default function ProjectManager() {
       return data.approvals || [];
     },
     enabled: !!token,
-    refetchInterval: 15000
+    refetchInterval: 15000,
+    staleTime: 60 * 1000
   });
 
   const [egoPayRate, setEgoPayRate] = useState('');
@@ -154,6 +157,11 @@ export default function ProjectManager() {
   };
 
   const [notificationMsg, setNotificationMsg] = useState('');
+  
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [filterCountry, setFilterCountry] = useState('');
   const [filterLanguage, setFilterLanguage] = useState('');
   const [filterProject, setFilterProject] = useState('');
@@ -173,6 +181,7 @@ export default function ProjectManager() {
       return data;
     },
     enabled: !!token && globalTab === 'contributors',
+    staleTime: 60 * 1000
   });
 
   const sendNotificationMutation = useMutation({
@@ -199,6 +208,7 @@ export default function ProjectManager() {
       return data.projects || [];
     },
     enabled: !!token,
+    staleTime: 5 * 60 * 1000
   });
 
   useEffect(() => {
@@ -252,6 +262,7 @@ export default function ProjectManager() {
     },
     enabled: !!token && !!activeProject,
     refetchInterval: 10000,
+    staleTime: 60 * 1000
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -440,6 +451,31 @@ export default function ProjectManager() {
     const ids = filteredContributors.map((u: any) => u._id);
     if (ids.length === 0) return showModal('No Match', 'No users match the current filters.', 'info');
     sendNotificationMutation.mutate(ids);
+  };
+
+  const handleSendMassEmail = async (users: any[]) => {
+    if (!emailSubject.trim() || !emailBody.trim()) {
+      return showModal('Error', 'Subject and body are required', 'error');
+    }
+    setIsSendingEmail(true);
+    try {
+      const userIds = users.map(u => u._id);
+      const res = await fetch('/api/pm/mail-contributors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userIds, subject: emailSubject, message: emailBody })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send email');
+      showModal('Success', data.message || `Emails successfully sent to ${users.length} contributors.`, 'success');
+      setIsEmailModalOpen(false);
+      setEmailSubject('');
+      setEmailBody('');
+    } catch (err: any) {
+      showModal('Error', err.message, 'error');
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   return (
@@ -858,21 +894,37 @@ export default function ProjectManager() {
               </div>
 
               <div className="bg-slate-50 p-6 rounded-2xl border border-blue-100">
-                <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Send className="w-4 h-4 text-blue-600"/> Send Targeted Notification</h3>
-                <p className="text-xs text-slate-500 mb-4">This message will be sent to the {filteredContributors.length} users currently visible in the table above.</p>
-                <textarea 
-                  value={notificationMsg}
-                  onChange={e => setNotificationMsg(e.target.value)}
-                  placeholder="Type your notification message here..."
-                  className="w-full border border-slate-200 rounded-xl p-3 text-sm h-24 mb-4"
-                />
-                <button 
-                  onClick={handleSendNotification}
-                  disabled={filteredContributors.length === 0 || !notificationMsg.trim() || sendNotificationMutation.isPending}
-                  className="bg-blue-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {sendNotificationMutation.isPending ? 'Sending...' : 'Send to Filtered Users'}
-                </button>
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-200 pb-6 md:pb-0 md:pr-6 flex flex-col">
+                    <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Send className="w-4 h-4 text-blue-600"/> Send Targeted Notification</h3>
+                    <p className="text-xs text-slate-500 mb-4">This message will be sent to the {filteredContributors.length} users currently visible in the table above.</p>
+                    <textarea 
+                      value={notificationMsg}
+                      onChange={e => setNotificationMsg(e.target.value)}
+                      placeholder="Type your notification message here..."
+                      className="w-full border border-slate-200 rounded-xl p-3 text-sm h-24 mb-4"
+                    />
+                    <button 
+                      onClick={handleSendNotification}
+                      disabled={filteredContributors.length === 0 || !notificationMsg.trim() || sendNotificationMutation.isPending}
+                      className="bg-blue-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 mt-auto"
+                    >
+                      {sendNotificationMutation.isPending ? 'Sending...' : 'Send to Filtered Users'}
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Mail className="w-4 h-4 text-blue-600"/> Send Mass Email</h3>
+                    <p className="text-xs text-slate-500 mb-4">Draft an email to send to the {filteredContributors.length} users currently visible in the table above.</p>
+                    <button 
+                      onClick={() => setIsEmailModalOpen(true)}
+                      disabled={filteredContributors.length === 0}
+                      className="bg-slate-900 text-white font-bold px-6 py-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 mt-auto"
+                    >
+                      Compose Email
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1307,6 +1359,65 @@ export default function ProjectManager() {
         )}
       </div>
       <Modal {...modalConfig} />
+
+      {isEmailModalOpen && createPortal(
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden border border-slate-200">
+            <div className="p-6 sm:p-8 bg-slate-900 text-white relative">
+              <h3 className="text-2xl font-display font-bold">Email Filtered Contributors</h3>
+              <p className="text-slate-400 mt-2">Sending to {filteredContributors.length} contributor(s)</p>
+              <button 
+                onClick={() => setIsEmailModalOpen(false)}
+                className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 sm:p-8 space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Subject</label>
+                <input 
+                  type="text" 
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="e.g., Update on Egocentric Project"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Message Body</label>
+                <textarea 
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  rows={8}
+                  placeholder="Write your message here..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button 
+                  onClick={() => setIsEmailModalOpen(false)}
+                  className="flex-1 py-3 px-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => handleSendMassEmail(filteredContributors)}
+                  disabled={isSendingEmail}
+                  className="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isSendingEmail ? 'Sending...' : 'Send Emails'}
+                  {!isSendingEmail && <Send className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -1325,7 +1436,8 @@ function ProjectApplications({ projectId, token }: { projectId: string, token: s
       const res = await fetch(`/api/applications/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
       return data.applications || [];
-    }
+    },
+    staleTime: 60 * 1000
   });
 
   const updateAppMutation = useMutation({
@@ -1462,7 +1574,8 @@ function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectI
       const res = await fetch(`/api/submissions/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
       return data.submissions || [];
-    }
+    },
+    staleTime: 60 * 1000
   });
 
   const updateSubMutation = useMutation({
@@ -1602,8 +1715,8 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
   const maxAmount = payRate ? parseInt(payRate.replace(/\D/g, '')) || Infinity : Infinity;
   const isAmountValid = amount === '' || Number(amount) <= maxAmount;
 
-  const { data: subs } = useQuery({ queryKey: ['pm-submissions', projectId], queryFn: async () => (await fetch(`/api/submissions/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.submissions || []) });
-  const { data: payments } = useQuery({ queryKey: ['pm-payments', projectId], queryFn: async () => (await fetch(`/api/payments/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.payments || []) });
+  const { data: subs } = useQuery({ queryKey: ['pm-submissions', projectId], queryFn: async () => (await fetch(`/api/submissions/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.submissions || []), staleTime: 60 * 1000 });
+  const { data: payments } = useQuery({ queryKey: ['pm-payments', projectId], queryFn: async () => (await fetch(`/api/payments/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.payments || []), staleTime: 60 * 1000 });
 
   const createPayment = useMutation({
     mutationFn: async () => {
@@ -1717,13 +1830,15 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
   
   const { data: apps } = useQuery({ 
     queryKey: ['pm-applications', projectId], 
-    queryFn: async () => (await fetch(`/api/applications/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.applications || []) 
+    queryFn: async () => (await fetch(`/api/applications/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.applications || []),
+    staleTime: 60 * 1000
   });
 
   const { data: unreadData } = useQuery({
     queryKey: ['unread-messages', token, projectId],
     queryFn: async () => (await fetch(`/api/user/unread-messages?projectId=${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json(),
-    refetchInterval: 10000
+    refetchInterval: 10000,
+    staleTime: 60 * 1000
   });
 
   useEffect(() => {

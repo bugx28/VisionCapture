@@ -23,7 +23,7 @@ export default function HomepageProjects() {
   if (isLoading || !projects) return null;
 
   return (
-    <section className="py-24 bg-slate-50 relative overflow-hidden" id="active-projects">
+    <section className="py-16 sm:py-24 bg-slate-50 relative overflow-hidden" id="active-projects">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-display font-extrabold text-slate-900 mb-6">Active Projects</h2>
@@ -39,7 +39,7 @@ export default function HomepageProjects() {
           </div>
         ) : null}
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Shine Animation Keyframes */}
           <style>{`
             @keyframes shine {
@@ -62,8 +62,8 @@ export default function HomepageProjects() {
               </div>
             </div>
 
-            <div className="p-8 flex-1 flex flex-col relative z-20">
-              <h3 className="text-2xl font-display font-bold text-white mb-3">Egocentric Video Contributors ( Remote)</h3>
+            <div className="p-6 sm:p-8 flex-1 flex flex-col relative z-20">
+              <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-3">Egocentric Video Contributors ( Remote)</h3>
               <p className="text-blue-300 font-medium text-sm mb-2">Apply if you are Individual, Vendor, Has connections.</p>
               <p className="text-slate-300 text-sm mb-4 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
 

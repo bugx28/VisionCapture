@@ -111,6 +111,7 @@ export default function Admin() {
       return data;
     },
     enabled: !!token,
+    staleTime: 60 * 1000
   });
 
   const { data: countriesData } = useQuery({
@@ -121,6 +122,7 @@ export default function Admin() {
       return data.countries || [];
     },
     enabled: !!token,
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: contactsData, isLoading: isContactsLoading } = useQuery({
@@ -131,6 +133,7 @@ export default function Admin() {
       return data;
     },
     enabled: !!token,
+    staleTime: 60 * 1000
   });
 
   const { data: pmsData } = useQuery({
@@ -141,6 +144,7 @@ export default function Admin() {
       return data.pms || [];
     },
     enabled: !!token,
+    staleTime: 60 * 1000
   });
 
   const { data: platformStatsData } = useQuery({
@@ -151,6 +155,7 @@ export default function Admin() {
       return data.stats;
     },
     enabled: !!token,
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: referralSettingsData } = useQuery({
@@ -161,6 +166,7 @@ export default function Admin() {
       return data.settings;
     },
     enabled: !!token,
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: approvalsData, refetch: refetchApprovals } = useQuery({
@@ -171,6 +177,7 @@ export default function Admin() {
       return data.approvals || [];
     },
     enabled: !!token,
+    staleTime: 60 * 1000
   });
 
   const approveMutation = useMutation({
@@ -213,6 +220,7 @@ export default function Admin() {
     },
     enabled: !!token && !!selectedUser?._id,
     refetchInterval: 10000,
+    staleTime: 60 * 1000
   });
 
   useEffect(() => {

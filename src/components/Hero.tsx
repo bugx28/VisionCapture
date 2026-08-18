@@ -54,7 +54,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col pt-32 pb-20 overflow-hidden">
+    <section className="relative min-h-[100dvh] flex flex-col pt-24 sm:pt-32 pb-12 sm:pb-20 overflow-hidden">
       {/* Background Video */}
       <div className="absolute inset-0 z-0 bg-slate-50">
         <video
@@ -78,7 +78,7 @@ export default function Hero() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-full p-8 sm:p-12 bg-black/10 backdrop-blur-sm rounded-3xl border border-black/20 shadow-2xl flex flex-col items-start text-left"
+            className="w-full p-6 sm:p-8 lg:p-12 bg-black/10 backdrop-blur-sm rounded-3xl border border-black/20 shadow-2xl flex flex-col items-start text-left order-last lg:order-first"
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/80 backdrop-blur-md text-white border border-slate-200 shadow-sm text-xs font-bold rounded-full uppercase tracking-wider mb-6">
               <span className="relative flex h-2 w-2">
@@ -88,18 +88,18 @@ export default function Hero() {
               India's Premier Data Infrastructure
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-extrabold tracking-tight text-black leading-[1.1] mb-6 drop-shadow-lg">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-extrabold tracking-tight text-black leading-[1.15] mb-6 drop-shadow-lg">
               Real-world Data for <br />
               <span className="text-blue-600 drop-shadow-md">
                 Physical AI
               </span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-slate-800 mb-10 leading-relaxed max-w-2xl font-medium drop-shadow-md">
+            <p className="text-base sm:text-lg lg:text-xl text-slate-800 mb-8 sm:mb-10 leading-relaxed max-w-2xl font-medium drop-shadow-md">
               We capture authentic human demonstrations and egocentric multimodal data to accelerate the development of next-generation intelligent robotics and embodied AI systems.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <a
                 href="mailto:contact@visioncapture.in"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-black text-white font-bold hover:bg-slate-100 transition-colors shadow-xl border border-slate-200"
@@ -121,20 +121,20 @@ export default function Hero() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            className="w-full h-full flex flex-col justify-center"
+            className="w-full h-full flex flex-col justify-center order-first lg:order-last"
           >
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 flex items-center gap-3">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </span>
                 Active Projects
               </h2>
-              <p className="text-blue-700 text-lg font-medium">Start Earning Today</p>
+              <p className="text-blue-700 text-base sm:text-lg font-medium">Start Earning Today</p>
             </div>
 
-            <div className="relative w-full aspect-[4/3] sm:aspect-auto sm:h-[560px] group">
+            <div className="relative w-full h-[500px] sm:h-[560px] group">
               {projectsData && projectsData.length > 1 && (
                 <>
                   <button
@@ -161,7 +161,7 @@ export default function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.5 }}
-                    className="absolute inset-0 bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col overflow-hidden"
+                    className="absolute inset-0 bg-white border border-slate-200 shadow-xl flex flex-col overflow-hidden" style={{ borderRadius: '24px' }}
                   >
                     {(() => {
                       const currentProject = projectsData[currentProjectIndex % projectsData.length];

@@ -7,7 +7,17 @@ import { COUNTRIES } from '../utils/countries';
 
 export default function Signup() {
   const params = new URLSearchParams(window.location.search);
-  const prefilledProject = params.get('project');
+  let rawProject = params.get('project');
+  let prefilledProject = rawProject;
+  
+  if (rawProject) {
+    const lower = rawProject.toLowerCase();
+    if (lower.includes('hiring: video contributors') || lower.includes('egocentric video contributors')) {
+      prefilledProject = 'Egocentric Video';
+    } else if (lower.includes('english short phrase recording project')) {
+      prefilledProject = 'Audio Recording';
+    }
+  }
 
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', city: '', country: '',
@@ -20,6 +30,20 @@ export default function Signup() {
   const [agreed, setAgreed] = useState(false);
   const [status, setStatus] = useState<'idle' | 'sending_otp' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval: any;
+    if (resendTimer > 0) {
+      interval = setInterval(() => setResendTimer(t => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const getInputClass = (fieldName: string, baseClass = "w-full rounded-xl px-4 py-3 text-sm") => {
+    return `${baseClass} ${invalidFields.includes(fieldName) ? 'border-2 border-red-500 bg-red-50 text-red-900' : 'bg-white border border-slate-200'}`;
+  };
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token') || !!localStorage.getItem('adminToken') || !!localStorage.getItem('pmToken'));
 
   useEffect(() => {
@@ -33,7 +57,8 @@ export default function Signup() {
       .then(res => res.json())
       .then(data => {
         if (data.country) {
-          setFormData(prev => ({ ...prev, country: data.country }));
+          const matchedCountry = COUNTRIES.find(c => c.code === data.country);
+          setFormData(prev => ({ ...prev, country: matchedCountry ? matchedCountry.name : data.country }));
         }
       })
       .catch(() => {});
@@ -87,6 +112,7 @@ export default function Signup() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
       setOtpSent(true);
+      setResendTimer(60);
       setStatus('idle');
     } catch (err: any) {
       setStatus('error');
@@ -98,15 +124,35 @@ export default function Signup() {
     e.preventDefault();
     
     const missingFields = [];
-    if (!formData.fullName) missingFields.push('Full Name');
-    if (!formData.email) missingFields.push('Email');
-    if (!formData.city) missingFields.push('City');
-    if (!formData.country) missingFields.push('Country');
-    if (!formData.nativeLanguage) missingFields.push('Native Language');
-    if (!formData.phone) missingFields.push('Phone');
-    if (!formData.experience) missingFields.push('Experience');
-    if (!formData.howFoundUs) missingFields.push('How did you find us?');
-    if (formData.projectsInterestedIn.length === 0) missingFields.push('Projects Interested In');
+    const newInvalidFields: string[] = [];
+    
+    if (!formData.fullName) { missingFields.push('Full Name'); newInvalidFields.push('fullName'); }
+    if (!formData.email) { missingFields.push('Email'); newInvalidFields.push('email'); }
+    if (!formData.city) { missingFields.push('City'); newInvalidFields.push('city'); }
+    if (!formData.country) { missingFields.push('Country'); newInvalidFields.push('country'); }
+    if (!formData.nativeLanguage) { missingFields.push('Native Language'); newInvalidFields.push('nativeLanguage'); }
+    if (!formData.phone) { missingFields.push('Phone'); newInvalidFields.push('phone'); }
+    if (!formData.experience) { missingFields.push('Experience'); newInvalidFields.push('experience'); }
+    if (!formData.howFoundUs) { missingFields.push('How did you find us?'); newInvalidFields.push('howFoundUs'); }
+    if (formData.projectsInterestedIn.length === 0) { missingFields.push('Projects Interested In'); newInvalidFields.push('projectsInterestedIn'); }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      if (!newInvalidFields.includes('email')) newInvalidFields.push('email');
+    }
+
+    const selectedDialCode = COUNTRIES.find(c => c.name === formData.country || c.code === formData.country)?.dial_code || '';
+    const fullPhone = `${selectedDialCode} ${formData.phone.trim()}`;
+    const phoneRegex = /^\+\d{1,4}[\s-]?(?:\d[\s-]?){9}\d$/;
+    
+    if (formData.phone && !phoneRegex.test(fullPhone)) {
+      if (!newInvalidFields.includes('phone')) newInvalidFields.push('phone');
+    }
+
+    if (!otpSent || !otp) newInvalidFields.push('otp');
+    if (!formData.password) newInvalidFields.push('password');
+
+    setInvalidFields(newInvalidFields);
 
     if (missingFields.length > 0) {
       setErrorMessage(`Please fill in the following missing fields: ${missingFields.join(', ')}`);
@@ -115,7 +161,6 @@ export default function Signup() {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setErrorMessage('Please enter a valid email address.');
       setStatus('error');
@@ -123,10 +168,6 @@ export default function Signup() {
       return;
     }
 
-    const selectedDialCode = COUNTRIES.find(c => c.code === formData.country)?.dial_code || '';
-    const fullPhone = `${selectedDialCode} ${formData.phone.trim()}`;
-
-    const phoneRegex = /^\+\d{1,4}[\s-]?(?:\d[\s-]?){9}\d$/;
     if (!phoneRegex.test(fullPhone)) {
       setErrorMessage('Phone number is invalid. Please enter exactly 10 digits.');
       setStatus('error');
@@ -246,13 +287,17 @@ export default function Signup() {
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Full Name *</label>
-                <input type="text" name="fullName" required value={formData.fullName} onChange={handleInputChange} placeholder="Enter your full name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="text" name="fullName" required value={formData.fullName} onChange={handleInputChange} placeholder="Enter your full name" className={getInputClass('fullName')} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Email *</label>
                 <div className="flex gap-2">
-                  <input type="email" name="email" required value={formData.email} onChange={handleInputChange} disabled={otpSent} placeholder="Enter your email address" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 disabled:opacity-50" />
-                  {!otpSent && (
+                  <input type="email" name="email" required value={formData.email} onChange={handleInputChange} disabled={otpSent} placeholder="Enter your email address" className={getInputClass('email', 'w-full rounded-xl px-4 py-3 disabled:opacity-50 text-sm')} />
+                  {otpSent ? (
+                    <button type="button" onClick={sendOtp} disabled={resendTimer > 0 || status === 'sending_otp'} className="px-4 py-3 bg-slate-200 text-slate-700 rounded-xl font-semibold whitespace-nowrap text-sm disabled:opacity-50">
+                      {resendTimer > 0 ? `Resend in ${resendTimer}s` : (status === 'sending_otp' ? 'Sending...' : 'Resend OTP')}
+                    </button>
+                  ) : (
                     <button type="button" onClick={sendOtp} disabled={status === 'sending_otp'} className="px-4 py-3 bg-slate-900 text-white rounded-xl font-semibold whitespace-nowrap text-sm disabled:opacity-70">
                       {status === 'sending_otp' ? 'Sending...' : 'Send OTP'}
                     </button>
@@ -265,12 +310,12 @@ export default function Signup() {
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Enter OTP *</label>
-                  <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required placeholder="6-digit OTP" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                  <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required placeholder="6-digit OTP" className={getInputClass('otp')} />
                   <p className="text-xs text-slate-500 mt-1">Please check your spam or junk folder also for otp.</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Password *</label>
-                  <input type="password" name="password" required value={formData.password} onChange={handleInputChange} placeholder="Create a strong password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                  <input type="password" name="password" required value={formData.password} onChange={handleInputChange} placeholder="Create a secure password" className={getInputClass('password')} />
                 </div>
               </div>
             )}
@@ -278,34 +323,36 @@ export default function Signup() {
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">City *</label>
-                <input type="text" name="city" required value={formData.city} onChange={handleInputChange} placeholder="e.g. New York" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="text" name="city" required value={formData.city} onChange={handleInputChange} placeholder="e.g. New York" className={getInputClass('city')} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Country *</label>
-                <CountrySelect 
-                  value={formData.country}
-                  onChange={(val) => setFormData(prev => ({ ...prev, country: val }))}
-                />
+                <div className={invalidFields.includes('country') ? "rounded-xl border-2 border-red-500 overflow-hidden" : ""}>
+                  <CountrySelect 
+                    value={formData.country}
+                    onChange={(val) => setFormData(prev => ({ ...prev, country: val }))}
+                  />
+                </div>
               </div>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Native Language *</label>
-                <input type="text" name="nativeLanguage" required value={formData.nativeLanguage} onChange={handleInputChange} placeholder="e.g. English" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="text" name="nativeLanguage" required value={formData.nativeLanguage} onChange={handleInputChange} placeholder="e.g. English" className={getInputClass('nativeLanguage')} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Additional Language</label>
-                <input type="text" name="additionalLanguage" value={formData.additionalLanguage} onChange={handleInputChange} placeholder="e.g. Spanish (Optional)" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="text" name="additionalLanguage" value={formData.additionalLanguage} onChange={handleInputChange} placeholder="e.g. Spanish (Optional)" className={getInputClass('additionalLanguage')} />
               </div>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Phone *</label>
-                <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors">
-                  <div className="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-600 font-medium flex items-center shrink-0">
-                    {COUNTRIES.find(c => c.code === formData.country)?.dial_code || '+'}
+                <div className={`flex rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-slate-400 transition-colors ${invalidFields.includes('phone') ? 'border-2 border-red-500 bg-red-50' : 'bg-slate-50 border border-slate-200'}`}>
+                  <div className={`px-4 py-3 border-r text-slate-600 font-medium flex items-center shrink-0 ${invalidFields.includes('phone') ? 'bg-red-100 border-red-300 text-red-900' : 'bg-slate-100 border-slate-200'}`}>
+                    {COUNTRIES.find(c => c.name === formData.country || c.code === formData.country)?.dial_code || '+'}
                   </div>
                   <input 
                     type="tel" 
@@ -320,7 +367,7 @@ export default function Signup() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Experience *</label>
-                <select name="experience" required value={formData.experience} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                <select name="experience" required value={formData.experience} onChange={handleInputChange} className={getInputClass('experience')}>
                   <option value="">Select experience</option>
                   <option value="No experience">No experience</option>
                   <option value="Less than 1 year">Less than 1 year</option>
@@ -332,7 +379,7 @@ export default function Signup() {
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-900">How did you find us? *</label>
-              <select name="howFoundUs" required value={formData.howFoundUs} onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <select name="howFoundUs" required value={formData.howFoundUs} onChange={handleInputChange} className={getInputClass('howFoundUs')}>
                 <option value="">Select an option</option>
                 <option value="LinkedIn">LinkedIn</option>
                 <option value="Google search">Google search</option>
