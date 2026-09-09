@@ -661,7 +661,7 @@ export default function ProjectManager() {
                 <div className="p-6 border-b border-slate-200">
                   <h3 className="text-xl font-bold text-slate-900">Applications</h3>
                 </div>
-                <ProjectApplications projectId={egoProjectData._id} token={token} />
+                <ProjectApplications projectId={egoProjectData._id} token={token} isEgocentric={true} />
               </div>
             )}
             
@@ -1428,8 +1428,11 @@ function ChevronRight(props: any) {
 
 // Subcomponents for Project Tabs
 
-function ProjectApplications({ projectId, token }: { projectId: string, token: string }) {
+function ProjectApplications({ projectId, token, isEgocentric }: { projectId: string, token: string, isEgocentric?: boolean }) {
   const queryClient = useQueryClient();
+  const [filterContributorType, setFilterContributorType] = useState('All');
+  const [filterCountry, setFilterCountry] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
   const { data: apps, isLoading } = useQuery({
     queryKey: ['pm-applications', projectId],
     queryFn: async () => {
@@ -1482,8 +1485,64 @@ function ProjectApplications({ projectId, token }: { projectId: string, token: s
 
   if (isLoading) return <div className="p-8 text-center">Loading...</div>;
 
+  const filteredApps = apps?.filter((a: any) => {
+    if (!a.contributorId) return false;
+    if (isEgocentric && filterContributorType !== 'All' && a.formData?.contributorType !== filterContributorType) {
+      return false;
+    }
+    if (isEgocentric && filterCountry !== 'All' && a.contributorId?.country !== filterCountry) {
+      return false;
+    }
+    if (filterStatus !== 'All' && a.status !== filterStatus) {
+      return false;
+    }
+    return true;
+  });
+
+  const uniqueApplicantCountries = Array.from(new Set(
+    (apps || []).map((a: any) => a.contributorId?.country).filter(Boolean)
+  )) as string[];
+
   return (
     <div className="overflow-y-auto h-full p-6">
+      <div className="mb-4 flex justify-end gap-4">
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="All">All Statuses</option>
+          <option value="Applied">Applied</option>
+          <option value="Approved">Approved</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        {isEgocentric && (
+          <>
+            <select
+              value={filterCountry}
+              onChange={e => setFilterCountry(e.target.value)}
+              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="All">All Countries</option>
+              {uniqueApplicantCountries.map(code => (
+                <option key={code} value={code}>
+                  {COUNTRIES.find(c => c.code === code)?.name || code}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterContributorType}
+              onChange={e => setFilterContributorType(e.target.value)}
+              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="All">All Contributor Types</option>
+              <option value="individual">Individual</option>
+              <option value="vendor">Vendor</option>
+              <option value="connections">Connections</option>
+            </select>
+          </>
+        )}
+      </div>
       <table className="w-full text-left text-sm">
         <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
           <tr>
@@ -1495,7 +1554,7 @@ function ProjectApplications({ projectId, token }: { projectId: string, token: s
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          {apps?.filter((a: any) => a.contributorId).map((app: any) => (
+          {filteredApps?.map((app: any) => (
             <tr key={app._id} className="hover:bg-slate-50">
               <td className="p-4 font-medium text-slate-900">{app.contributorId.fullName}</td>
               <td className="p-4 text-slate-600">{app.contributorId.email}</td>
@@ -1519,7 +1578,7 @@ function ProjectApplications({ projectId, token }: { projectId: string, token: s
               </td>
             </tr>
           ))}
-          {apps?.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500">No applications yet.</td></tr>}
+          {filteredApps?.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500">No applications found.</td></tr>}
         </tbody>
       </table>
       <Modal {...modalConfig} />
@@ -1537,6 +1596,7 @@ function ProjectApplications({ projectId, token }: { projectId: string, token: s
               <h4 className="font-bold text-slate-900 mb-2 border-b border-slate-200 pb-1">Registration Details</h4>
               <p><strong>Name:</strong> {selectedApp.contributorId.fullName}</p>
               <p><strong>Email:</strong> {selectedApp.contributorId.email}</p>
+              <p><strong>Phone:</strong> {selectedApp.contributorId.phone || 'N/A'}</p>
               <p><strong>Country:</strong> {COUNTRIES.find(c => c.code === selectedApp.contributorId.country)?.name || selectedApp.contributorId.country || 'N/A'}</p>
               <p><strong>Native Language:</strong> {selectedApp.contributorId.nativeLanguage || 'N/A'}</p>
               <p><strong>Experience:</strong> {selectedApp.contributorId.experience || 'N/A'}</p>

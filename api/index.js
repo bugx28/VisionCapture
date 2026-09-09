@@ -1085,7 +1085,7 @@ app.get('/api/applications/user', authenticateUser, async (req, res) => {
 app.get('/api/applications/project/:projectId', authenticatePM, async (req, res) => {
   try {
     await connectDB();
-    const apps = await Application.find({ projectId: req.params.projectId }).populate('contributorId', 'fullName email country nativeLanguage experience');
+    const apps = await Application.find({ projectId: req.params.projectId }).populate('contributorId', 'fullName email country nativeLanguage experience phone');
     res.json({ success: true, applications: apps });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch' });
