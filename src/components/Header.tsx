@@ -3,10 +3,11 @@ import logo from '../assets/logo.svg';
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Modal, { ModalProps } from './Modal';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const DiscordIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" fill="currentColor">
-    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91.08,65.69,84.69,65.69Z"/>
+    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91.08,65.69,84.69,65.69Z" />
   </svg>
 );
 
@@ -18,7 +19,6 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token') || !!localStorage.getItem('adminToken') || !!localStorage.getItem('pmToken'));
   const [profileLink, setProfileLink] = useState(localStorage.getItem('adminToken') ? '/admin' : localStorage.getItem('pmToken') ? '/project-manager' : '/profile');
   const [unreadCount, setUnreadCount] = useState(0);
-  const [notifications, setNotifications] = useState<any[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [modalConfig, setModalConfig] = useState<ModalProps>({
@@ -68,37 +68,46 @@ export default function Header() {
   const [showNotifications, setShowNotifications] = useState(false);
   const isRegularUser = isLoggedIn && profileLink === '/profile';
 
-  const fetchNotifications = () => {
-    if (isRegularUser) {
+  const queryClient = useQueryClient();
+
+  const { data: notificationsData, refetch: fetchNotifications } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
       const token = localStorage.getItem('token');
-      fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setNotifications(data.notifications);
-            setUnreadCount(data.notifications.filter((n: any) => !n.isRead).length);
-          }
-        }).catch(err => console.error(err));
-    }
-  };
+      if (!token) return { success: false, notifications: [] };
+      const res = await fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } });
+      return res.json();
+    },
+    enabled: isRegularUser,
+    refetchInterval: 60000, // Poll every 60s
+    refetchIntervalInBackground: false, // Don't poll when tab is inactive
+  });
+
+  const notifications = notificationsData?.notifications || [];
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
-    return () => clearInterval(interval);
-  }, [isRegularUser]);
+    if (notificationsData?.success) {
+      setUnreadCount(notifications.filter((n: any) => !n.isRead).length);
+    }
+  }, [notificationsData, notifications]);
 
   const markAsRead = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/notifications/${id}/read`, {
+      // Optimistic update
+      queryClient.setQueryData(['notifications'], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          notifications: old.notifications.map((n: any) => n._id === id ? { ...n, isRead: true } : n)
+        };
+      });
+      setUnreadCount(prev => Math.max(0, prev - 1));
+
+      await fetch(`/api/notifications/${id}/read`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
     } catch (err) {
       console.error('Failed to mark read', err);
     }
@@ -131,6 +140,7 @@ export default function Header() {
   }, []);
 
   const navLinks = [
+    { name: 'Opportunities', href: '/opportunities' },
     { name: 'Services', href: '/#services' },
     { name: 'Industries', href: '/#what-we-record' },
     { name: 'Sample Data', href: '/#sample-data' },
@@ -140,7 +150,7 @@ export default function Header() {
     if (!showNotifications) return null;
     return (
       <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] max-h-96 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 z-50">
-        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-50 rounded-t-2xl">
           <h3 className="font-bold text-slate-800">Notifications</h3>
           {unreadCount > 0 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>}
         </div>
@@ -167,10 +177,10 @@ export default function Header() {
                 });
               };
               return (
-                <div 
-                  key={n._id} 
+                <div
+                  key={n._id}
                   onClick={() => !n.isRead && markAsRead(n._id)}
-                  className={`p-3 rounded-xl mb-1 cursor-pointer transition-colors ${n.isRead ? 'opacity-60 hover:bg-slate-50' : 'bg-blue-50/50 border border-blue-100 hover:bg-blue-50'}`}
+                  className={`p-3 rounded-xl mb-1 cursor-pointer transition-colors ${n.isRead ? 'opacity-60 hover:bg-blue-50' : 'bg-blue-50/50 border border-blue-100 hover:bg-blue-50'}`}
                 >
                   <div className="text-sm text-slate-800">{renderMessage(n.message)}</div>
                   <div className="text-xs text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
@@ -188,7 +198,7 @@ export default function Header() {
       ? 'top-6 max-w-7xl'
       : 'top-0 max-w-[1600px] pt-6 px-4 md:px-8'
       }`}>
-      <div className={`transition-all duration-500 bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg ${isScrolled
+      <div className={`transition-all duration-500 bg-white/95 border border-slate-200 shadow-lg ${isScrolled
         ? 'rounded-full px-6 sm:px-8 py-2'
         : 'rounded-3xl px-4 sm:px-6 py-2'
         }`}>
@@ -216,10 +226,10 @@ export default function Header() {
                   <Link to="/profile#available" className="hover:text-slate-900 transition-colors font-bold text-blue-600">
                     Available Projects
                   </Link>
-                  <a 
-                    href="https://t.me/visioncaptureai" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://t.me/visioncaptureai"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)] hover:scale-105 transition-all duration-300 relative overflow-hidden group"
                   >
                     <span className="absolute inset-0 w-full h-full bg-white/20 group-hover:scale-110 transition-transform rounded-full"></span>
@@ -231,7 +241,7 @@ export default function Header() {
                     </span>
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-white border-2 border-indigo-500 rounded-full animate-pulse"></span>
                   </a>
-                  <button 
+                  <button
                     onClick={() => showModal('Coming Soon', 'Our Discord community is launching soon! Check back later for updates.', 'info')}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#5865F2] text-white font-bold text-sm shadow-[0_0_15px_rgba(88,101,242,0.5)] hover:shadow-[0_0_25px_rgba(88,101,242,0.7)] hover:scale-105 transition-all duration-300 relative overflow-hidden group"
                   >
@@ -267,8 +277,8 @@ export default function Header() {
           </div>
 
           <div className="hidden xl:flex items-center gap-4">
-            <button 
-              onClick={toggleTheme} 
+            <button
+              onClick={toggleTheme}
               className="p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
               aria-label="Toggle theme"
             >
@@ -284,12 +294,12 @@ export default function Header() {
               </div>
               <span className="relative z-10 drop-shadow-md">Record to earn</span>
             </Link>
-            
+
             {isRegularUser ? (
               <div className="flex items-center gap-2 ml-2">
                 <div className="relative">
-                  <button 
-                    onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifications(); }} 
+                  <button
+                    onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifications(); }}
                     className="relative p-2 text-slate-600 hover:text-blue-600 transition-colors mr-2 focus:outline-none"
                   >
                     <Bell className="w-6 h-6" />
@@ -350,18 +360,18 @@ export default function Header() {
               <span className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-shine"></span>
               <span className="relative z-10">Record to earn</span>
             </Link>
-            <button 
-              onClick={toggleTheme} 
+            <button
+              onClick={toggleTheme}
               className="p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
               aria-label="Toggle theme"
             >
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            
+
             {isRegularUser && (
               <div className="relative">
-                <button 
-                  onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifications(); }} 
+                <button
+                  onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) fetchNotifications(); }}
                   className="relative p-2 text-slate-600 hover:text-blue-600 transition-colors focus:outline-none"
                 >
                   <Bell className="w-6 h-6" />
@@ -372,7 +382,7 @@ export default function Header() {
                 {renderNotifications()}
               </div>
             )}
-            
+
             <button
               className="p-2 text-slate-600 hover:text-slate-900 rounded-full hover:bg-slate-100"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -385,7 +395,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="xl:hidden mt-4 bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl mx-2 overflow-hidden">
+        <div className="xl:hidden mt-4 bg-white/95 border border-slate-200 shadow-xl rounded-3xl mx-2 overflow-hidden">
           <div className="px-4 py-4 space-y-4">
             {isRegularUser ? (
               <div className="flex flex-col gap-3">
@@ -396,10 +406,10 @@ export default function Header() {
                 >
                   Available Projects
                 </Link>
-                <a 
-                  href="https://t.me/visioncaptureai" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href="https://t.me/visioncaptureai"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => setIsMenuOpen(false)}
                   className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-base shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-300 relative overflow-hidden"
                 >
@@ -408,7 +418,7 @@ export default function Header() {
                   </svg>
                   Join our Telegram channel
                 </a>
-                <button 
+                <button
                   onClick={() => { setIsMenuOpen(false); showModal('Coming Soon', 'Our Discord community is launching soon! Check back later for updates.', 'info'); }}
                   className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#5865F2] text-white font-bold text-base shadow-[0_0_15px_rgba(88,101,242,0.5)] transition-all duration-300 relative overflow-hidden"
                 >
@@ -458,7 +468,7 @@ export default function Header() {
                 <Link
                   to={isLoggedIn ? profileLink : '/profile'}
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-center px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition-colors"
+                  className="block w-full text-center px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-blue-50 transition-colors"
                 >
                   {isLoggedIn ? 'My Profile' : 'Login'}
                 </Link>

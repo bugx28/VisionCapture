@@ -10,6 +10,7 @@ import Contact from '../models/Contact.js';
 import User from '../models/User.js';
 import Message from '../models/Message.js';
 import Project from '../models/Project.js';
+import Opportunity from '../models/Opportunity.js';
 import PlatformStats from '../models/PlatformStats.js';
 import Referral from '../models/Referral.js';
 import ReferralSettings from '../models/ReferralSettings.js';
@@ -824,6 +825,60 @@ app.delete('/api/pm/projects/:id', authenticatePM, async (req, res) => {
 });
 
 // =======================
+// OPPORTUNITY PM ROUTES
+// =======================
+
+app.post('/api/pm/opportunities', authenticatePM, async (req, res) => {
+  try {
+    await connectDB();
+    const newOpp = new Opportunity({
+      ...req.body,
+      createdBy: req.user.id
+    });
+    await newOpp.save();
+    res.status(201).json({ success: true, opportunity: newOpp });
+  } catch (err) {
+    console.error('Error creating opportunity:', err);
+    res.status(500).json({ error: 'Failed to create opportunity.' });
+  }
+});
+
+app.get('/api/pm/opportunities', authenticatePM, async (req, res) => {
+  try {
+    await connectDB();
+    const opportunities = await Opportunity.find().sort({ createdAt: -1 });
+    res.json({ success: true, opportunities });
+  } catch (err) {
+    console.error('Error fetching opportunities:', err);
+    res.status(500).json({ error: 'Failed to fetch opportunities.' });
+  }
+});
+
+app.put('/api/pm/opportunities/:id', authenticatePM, async (req, res) => {
+  try {
+    await connectDB();
+    const updatedOpp = await Opportunity.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedOpp) return res.status(404).json({ error: 'Opportunity not found.' });
+    res.json({ success: true, opportunity: updatedOpp });
+  } catch (err) {
+    console.error('Error updating opportunity:', err);
+    res.status(500).json({ error: 'Failed to update opportunity.' });
+  }
+});
+
+app.delete('/api/pm/opportunities/:id', authenticatePM, async (req, res) => {
+  try {
+    await connectDB();
+    const opp = await Opportunity.findByIdAndDelete(req.params.id);
+    if (!opp) return res.status(404).json({ error: 'Opportunity not found.' });
+    res.json({ success: true, message: 'Opportunity deleted.' });
+  } catch (err) {
+    console.error('Error deleting opportunity:', err);
+    res.status(500).json({ error: 'Failed to delete opportunity.' });
+  }
+});
+
+// =======================
 // PUBLIC NEW ROUTES
 // =======================
 
@@ -836,6 +891,17 @@ app.get('/api/public/projects/homepage', async (req, res) => {
   } catch (err) {
     console.error('Error fetching homepage projects:', err);
     res.status(500).json({ error: 'Failed to fetch homepage projects.' });
+  }
+});
+
+app.get('/api/public/opportunities', async (req, res) => {
+  try {
+    await connectDB();
+    const opportunities = await Opportunity.find({ status: 'active' }).sort({ createdAt: -1 });
+    res.json({ success: true, opportunities });
+  } catch (err) {
+    console.error('Error fetching public opportunities:', err);
+    res.status(500).json({ error: 'Failed to fetch public opportunities.' });
   }
 });
 

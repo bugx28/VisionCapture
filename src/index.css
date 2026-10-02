@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Google Fonts loaded via index.html <link> tags for non-blocking loading */
 @import "tailwindcss";
 
 @theme {
@@ -38,30 +38,22 @@
 
 html {
   scroll-behavior: smooth;
-  touch-action: manipulation; /* Eliminate 300ms mobile tap delay globally */
-  -webkit-tap-highlight-color: transparent; /* Remove default blue tap box */
+  touch-action: manipulation;
+  /* Eliminate 300ms mobile tap delay globally */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove default blue tap box */
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 font-sans antialiased;
+  @apply bg-blue-50 text-slate-900 font-sans antialiased;
 }
 
 @layer base {
-  /* Add universal immediate tap feedback to all interactive elements on mobile */
-  button:not(:disabled), a[href] {
-    @apply transition-all duration-150 active:scale-[0.98] active:opacity-90;
-  }
-}
 
-@keyframes liquid-blob {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1) rotate(0deg);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1) rotate(15deg);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9) rotate(-15deg);
+  /* Add universal immediate tap feedback to all interactive elements on mobile */
+  button:not(:disabled),
+  a[href] {
+    @apply transition-all duration-150 active:scale-[0.98] active:opacity-90;
   }
 }
 
@@ -70,29 +62,32 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.animate-liquid-blob {
-  animation: liquid-blob 15s infinite ease-in-out;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
 @keyframes shine {
-  0% { left: -100%; opacity: 0; }
-  10% { opacity: 0.8; }
-  20% { left: 100%; opacity: 0; }
-  100% { left: 100%; opacity: 0; }
+  0% {
+    left: -100%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.8;
+  }
+
+  20% {
+    left: 100%;
+    opacity: 0;
+  }
+
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
 }
 
 .animate-shine {

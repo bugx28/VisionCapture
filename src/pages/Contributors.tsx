@@ -36,7 +36,7 @@ export default function Contributors() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
       <SEO title="Active Projects & Contributors | Vision Capture" description="Browse and apply for active data collection projects as a contributor. We are hiring for egocentric video collection." canonicalUrl="https://visioncapture.in/contributors" />
       
       {/* Combined Banner: How it Works & Hiring */}
@@ -71,7 +71,7 @@ export default function Contributors() {
                       </button>
                     ) : (
                       <div className="relative z-10 flex flex-col items-center group w-full md:w-1/4">
-                        <div className="w-16 h-16 rounded-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 shadow-xl flex items-center justify-center text-slate-300 group-hover:border-blue-400 group-hover:text-blue-400 group-hover:bg-slate-900 group-hover:scale-110 transition-all duration-300 mb-4 relative">
+                        <div className="w-16 h-16 rounded-full bg-slate-800/80 border-2 border-slate-600 shadow-xl flex items-center justify-center text-slate-300 group-hover:border-blue-400 group-hover:text-blue-400 group-hover:bg-slate-900 group-hover:scale-110 transition-all duration-300 mb-4 relative">
                           {step.icon}
                         </div>
                         <h4 className="text-sm font-bold text-slate-200 text-center px-2 group-hover:text-white transition-colors">{step.title}</h4>
@@ -116,7 +116,7 @@ export default function Contributors() {
               </div>
 
               <div className="flex flex-col">
-                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 mb-6 flex-1">
+                <div className="bg-blue-50 rounded-2xl p-6 border border-slate-100 mb-6 flex-1">
                   <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-slate-400" /> Quick Requirements
                   </h3>
@@ -245,7 +245,7 @@ export default function Contributors() {
                           </div>
                         )}
                         
-                        <div className="grid grid-cols-2 gap-4 text-xs font-medium text-slate-600 bg-slate-50 p-4 rounded-2xl">
+                        <div className="grid grid-cols-2 gap-4 text-xs font-medium text-slate-600 bg-blue-50 p-4 rounded-2xl">
                           {project.estimatedDuration && (
                             <div className="flex items-center gap-2">
                               <Clock className="w-4 h-4 text-slate-400" />

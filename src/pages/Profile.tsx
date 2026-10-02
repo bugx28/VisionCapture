@@ -456,19 +456,19 @@ export default function Profile() {
         {viewState === 'login' ? (
           <>
             <h1 className="text-3xl font-bold text-slate-900 text-center mb-8">Contributor Login</h1>
-            <form onSubmit={handleLogin} className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
+            <form onSubmit={handleLogin} className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
               {loginError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center font-medium">{loginError}</div>}
               {resetSuccess && <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm text-center font-medium">{resetSuccess}</div>}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Email</label>
-                <input type="email" required placeholder="Enter your email address" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="email" required placeholder="Enter your email address" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-bold text-slate-900">Password</label>
                   <button type="button" onClick={() => setViewState('forgotPassword')} className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">Forgot Password?</button>
                 </div>
-                <input type="password" required placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="password" required placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors">Login</button>
               
@@ -481,7 +481,7 @@ export default function Profile() {
         ) : (
           <>
             <h1 className="text-3xl font-bold text-slate-900 text-center mb-8">Reset Password</h1>
-            <form onSubmit={otpSent ? handleResetPassword : handleSendResetOtp} className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
+            <form onSubmit={otpSent ? handleResetPassword : handleSendResetOtp} className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
               {resetError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center font-medium">{resetError}</div>}
               {resetSuccess && <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm text-center font-medium">{resetSuccess}</div>}
               
@@ -489,7 +489,7 @@ export default function Profile() {
                 <>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">Email Address</label>
-                    <input type="email" required placeholder="Enter your registered email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                    <input type="email" required placeholder="Enter your registered email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                   </div>
                   <button type="submit" disabled={isResetLoading} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-70">
                     {isResetLoading ? 'Sending...' : 'Send Reset Code'}
@@ -499,11 +499,11 @@ export default function Profile() {
                 <>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">Reset Code (OTP)</label>
-                    <input type="text" required placeholder="Enter the 6-digit code" value={resetOtp} onChange={e => setResetOtp(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 tracking-widest text-center font-mono" />
+                    <input type="text" required placeholder="Enter the 6-digit code" value={resetOtp} onChange={e => setResetOtp(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 tracking-widest text-center font-mono" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">New Password</label>
-                    <input type="password" required placeholder="Enter your new password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" minLength={6} />
+                    <input type="password" required placeholder="Enter your new password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" minLength={6} />
                   </div>
                   <button type="submit" disabled={isResetLoading} className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-70">
                     {isResetLoading ? 'Resetting...' : 'Reset Password'}
@@ -617,7 +617,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
       <SEO title="Profile | Vision Capture" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -963,7 +963,7 @@ export default function Profile() {
                           </div>
                         </div>
 
-                        <div className="p-6 bg-slate-50">
+                        <div className="p-6 bg-blue-50">
                           {app.projectId.projectDetails && (
                             <div className="mb-6">
                               <button
@@ -1072,7 +1072,7 @@ export default function Profile() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Payment History</h2>
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
                   <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className="bg-slate-50 border-b border-slate-200">
+                    <thead className="bg-blue-50 border-b border-slate-200">
                       <tr>
                         <th className="p-4 font-bold text-slate-900">Date</th>
                         <th className="p-4 font-bold text-slate-900">Project</th>
@@ -1125,7 +1125,7 @@ export default function Profile() {
                           <button
                             key={app._id}
                             onClick={() => setSelectedChatProject(app)}
-                            className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-blue-300 transition-colors relative"
+                            className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-colors relative"
                           >
                             <div className="text-left">
                               <p className="font-bold text-slate-900 flex items-center gap-2">
@@ -1154,7 +1154,7 @@ export default function Profile() {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Refer & Earn</h2>
                 <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
-                    <h3 className="text-xl font-bold text-slate-600 bg-slate-50 px-6 py-3 rounded-xl inline-block">Coming Soon</h3>
+                    <h3 className="text-xl font-bold text-slate-600 bg-blue-50 px-6 py-3 rounded-xl inline-block">Coming Soon</h3>
                 </div>
               </div>
             )}
@@ -1172,7 +1172,7 @@ export default function Profile() {
                         <div 
                           key={n._id} 
                           onClick={() => !n.isRead && markNotificationAsRead(n._id)}
-                          className={`p-4 rounded-xl border transition-colors ${n.isRead ? 'bg-slate-50 border-slate-100 opacity-70' : 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'}`}
+                          className={`p-4 rounded-xl border transition-colors ${n.isRead ? 'bg-blue-50 border-slate-100 opacity-70' : 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'}`}
                         >
                           <div className="flex justify-between items-start gap-4">
                             <p className="text-slate-800 flex-1">{n.message}</p>
@@ -1200,7 +1200,7 @@ export default function Profile() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-900">Full Name</label>
-                      <input type="text" required value={profileFormData.fullName || ''} onChange={e => setProfileFormData({...profileFormData, fullName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                      <input type="text" required value={profileFormData.fullName || ''} onChange={e => setProfileFormData({...profileFormData, fullName: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-900">Country</label>
@@ -1213,7 +1213,7 @@ export default function Profile() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-900">Phone</label>
-                      <div className="flex bg-slate-50 border border-slate-200 rounded-xl overflow-hidden focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors">
+                      <div className="flex bg-blue-50 border border-slate-200 rounded-xl overflow-hidden focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors">
                         <div className="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-600 font-medium flex items-center shrink-0">
                           {COUNTRIES.find(c => c.code === profileFormData.country)?.dial_code || '+'}
                         </div>
@@ -1229,16 +1229,16 @@ export default function Profile() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-900">City</label>
-                      <input type="text" required value={profileFormData.city || ''} onChange={e => setProfileFormData({...profileFormData, city: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                      <input type="text" required value={profileFormData.city || ''} onChange={e => setProfileFormData({...profileFormData, city: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">Native Language</label>
-                    <input type="text" required value={profileFormData.nativeLanguage || ''} onChange={e => setProfileFormData({...profileFormData, nativeLanguage: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                    <input type="text" required value={profileFormData.nativeLanguage || ''} onChange={e => setProfileFormData({...profileFormData, nativeLanguage: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">UPI ID for Payments</label>
-                    <input type="text" required value={profileFormData.upiId || ''} onChange={e => setProfileFormData({...profileFormData, upiId: e.target.value})} placeholder="yourname@upi" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                    <input type="text" required value={profileFormData.upiId || ''} onChange={e => setProfileFormData({...profileFormData, upiId: e.target.value})} placeholder="yourname@upi" className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                   </div>
                   <button type="submit" disabled={isSendingProfileOtp} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors w-full sm:w-auto">
                     {isSendingProfileOtp ? 'Sending Code...' : 'Save Profile Details'}
@@ -1249,11 +1249,11 @@ export default function Profile() {
                   <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Change Password</h3>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">Old Password</label>
-                    <input type="password" required value={passwordForm.oldPassword} onChange={e => setPasswordForm({...passwordForm, oldPassword: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                    <input type="password" required value={passwordForm.oldPassword} onChange={e => setPasswordForm({...passwordForm, oldPassword: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-900">New Password</label>
-                    <input type="password" required minLength={6} value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                    <input type="password" required minLength={6} value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
                   </div>
                   <button type="submit" disabled={changePasswordMutation.isPending} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors w-full sm:w-auto">
                     {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
@@ -1268,7 +1268,7 @@ export default function Profile() {
 
       {/* Terms and Consent Modal */}
       {consentProject && createPortal(
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-[9999]">
           <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
               <h3 className="text-2xl font-bold text-slate-900">
@@ -1279,10 +1279,10 @@ export default function Profile() {
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+            <div className="p-6 overflow-y-auto flex-1 bg-blue-50/50">
               {/* STEP 1: Terms */}
               {(!consentProject.isEgocentric || egoAppStep === 1) && (
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-700 text-sm whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                <div className="bg-blue-50 p-4 rounded-xl border border-slate-200 text-slate-700 text-sm whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
                   <FormattedText text={consentProject.termsAndConditions} />
                 </div>
               )}
@@ -1457,7 +1457,7 @@ export default function Profile() {
 
       {/* OTP Modal for Profile Save */}
       {isProfileOtpSent && createPortal(
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-[9999]">
           <div className="bg-white rounded-3xl w-full max-w-sm flex flex-col shadow-2xl p-6">
             <h3 className="text-2xl font-bold text-slate-900 mb-2">Verify OTP</h3>
             <p className="text-slate-600 text-sm mb-6 leading-relaxed">
@@ -1469,7 +1469,7 @@ export default function Profile() {
               maxLength={6}
               value={profileOtp} 
               onChange={e => setProfileOtp(e.target.value)} 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] font-mono font-bold text-xl mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+              className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] font-mono font-bold text-xl mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
             />
             <div className="flex gap-3 justify-end">
               <button 

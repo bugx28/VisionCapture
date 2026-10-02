@@ -101,7 +101,7 @@ export default function Contact({ hideHeader = false }: ContactProps) {
         )}
 
         <div
-          className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-2xl rounded-3xl p-8 sm:p-12 animate-[fadeInUp_0.5s_ease-out_forwards]"
+          className="bg-white/95 border border-slate-200 shadow-2xl rounded-3xl p-8 sm:p-12 animate-[fadeInUp_0.5s_ease-out_forwards]"
           style={{ animationFillMode: 'forwards' }}
         >
           {status === 'success' ? (
@@ -133,7 +133,7 @@ export default function Contact({ hideHeader = false }: ContactProps) {
                     id="name"
                     name="name"
                     onChange={(e) => setErrors({ ...errors, name: '' })}
-                    className={`w-full bg-white border ${errors.name ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors placeholder:text-slate-400 backdrop-blur-sm`}
+                    className={`w-full bg-white border ${errors.name ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors placeholder:text-slate-400`}
                     placeholder="Jane Doe"
                   />
                   {errors.name && (
@@ -147,7 +147,7 @@ export default function Contact({ hideHeader = false }: ContactProps) {
                     id="email"
                     name="email"
                     onChange={(e) => setErrors({ ...errors, email: '' })}
-                    className={`w-full bg-white border ${errors.email ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors placeholder:text-slate-400 backdrop-blur-sm`}
+                    className={`w-full bg-white border ${errors.email ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors placeholder:text-slate-400`}
                     placeholder="jane@company.com"
                   />
                   {errors.email && (
@@ -162,7 +162,7 @@ export default function Contact({ hideHeader = false }: ContactProps) {
                   type="text"
                   id="company"
                   name="company"
-                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors placeholder:text-slate-400 backdrop-blur-sm"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors placeholder:text-slate-400"
                   placeholder="AI Robotics Inc."
                 />
               </div>
@@ -174,7 +174,7 @@ export default function Contact({ hideHeader = false }: ContactProps) {
                   name="serviceType"
                   defaultValue=""
                   onChange={(e) => setErrors({ ...errors, serviceType: '' })}
-                  className={`w-full bg-white border ${errors.serviceType ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors backdrop-blur-sm`}
+                  className={`w-full bg-white border ${errors.serviceType ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors`}
                 >
                   <option value="" disabled>Select a service</option>
                   <option value="AI Data Services">AI Data Services — I need data collection or annotation</option>
@@ -193,7 +193,7 @@ export default function Contact({ hideHeader = false }: ContactProps) {
                   name="message"
                   rows={4}
                   onChange={(e) => setErrors({ ...errors, message: '' })}
-                  className={`w-full bg-white border ${errors.message ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors resize-none placeholder:text-slate-400 backdrop-blur-sm`}
+                  className={`w-full bg-white border ${errors.message ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-colors resize-none placeholder:text-slate-400`}
                   placeholder="Briefly describe your requirements..."
                 />
                 {errors.message && (

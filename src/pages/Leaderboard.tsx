@@ -36,7 +36,7 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
       <SEO title="Referral Leaderboard | Vision Capture" description="Top contributors leaderboard and monthly prizes." />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,7 +77,7 @@ export default function Leaderboard() {
                   className={`grid sm:grid-cols-12 gap-4 items-center p-4 sm:p-6 rounded-2xl border shadow-lg transition-transform hover:-translate-y-1 ${getRankStyle(entry.rank)}`}
                 >
                   <div className="col-span-12 sm:col-span-2 flex items-center justify-center gap-2">
-                    <div className="w-12 h-12 bg-white/50 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-sm font-black text-xl text-slate-700">
+                    <div className="w-12 h-12 bg-white/50 rounded-xl flex items-center justify-center shadow-sm font-black text-xl text-slate-700">
                       #{entry.rank}
                     </div>
                   </div>

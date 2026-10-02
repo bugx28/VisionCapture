@@ -381,15 +381,15 @@ export default function ProjectManager() {
       <div className="py-24 max-w-md mx-auto px-4 min-h-[70vh] flex flex-col justify-center">
         <SEO title="PM Login | Vision Capture" />
         <h1 className="text-3xl font-bold text-slate-900 text-center mb-8">Project Manager Portal</h1>
-        <form onSubmit={handleLogin} className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
+        <form onSubmit={handleLogin} className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
           {loginError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center font-medium">{loginError}</div>}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-900">Email</label>
-            <input type="email" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+            <input type="email" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-900">Password</label>
-            <input type="password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+            <input type="password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
           </div>
           <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Login to Portal</button>
         </form>
@@ -479,7 +479,7 @@ export default function ProjectManager() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
       <SEO title="PM Dashboard | Vision Capture" />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -522,7 +522,7 @@ export default function ProjectManager() {
               </div>
             )}
           </div>
-          <button onClick={handleLogout} className="px-4 py-2 text-sm font-bold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50">Logout</button>
+          <button onClick={handleLogout} className="px-4 py-2 text-sm font-bold border border-slate-200 text-slate-600 rounded-lg hover:bg-blue-50">Logout</button>
         </div>
 
         {/* Global Dashboard View */}
@@ -605,7 +605,7 @@ export default function ProjectManager() {
                 </div>
               </div>
               
-              <div className="flex border-t border-slate-200 bg-slate-50 p-2 overflow-x-auto">
+              <div className="flex border-t border-slate-200 bg-blue-50 p-2 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Overview' },
                   { id: 'applications', label: 'Applications' },
@@ -634,11 +634,11 @@ export default function ProjectManager() {
                 <div className="grid md:grid-cols-2 gap-8">
                   <div>
                     <h4 className="font-bold text-slate-700 mb-2">Category</h4>
-                    <p className="text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100">{egoProjectData.category}</p>
+                    <p className="text-slate-600 bg-blue-50 p-4 rounded-xl border border-slate-100">{egoProjectData.category}</p>
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-700 mb-2">Pay Rate</h4>
-                    <p className="text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 font-bold text-green-600">{egoProjectData.payRate}</p>
+                    <p className="text-slate-600 bg-blue-50 p-4 rounded-xl border border-slate-100 font-bold text-green-600">{egoProjectData.payRate}</p>
                   </div>
                   <div className="md:col-span-2">
                     <h4 className="font-bold text-slate-700 mb-2">Live Support Link (Telegram)</h4>
@@ -648,7 +648,7 @@ export default function ProjectManager() {
                   </div>
                   <div className="md:col-span-2">
                     <h4 className="font-bold text-slate-700 mb-2">Terms and Conditions</h4>
-                    <div className="text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 whitespace-pre-wrap">
+                    <div className="text-slate-600 bg-blue-50 p-4 rounded-xl border border-slate-100 whitespace-pre-wrap">
                       <FormattedText text={egoProjectData.termsAndConditions || 'Not set'} />
                     </div>
                   </div>
@@ -671,19 +671,19 @@ export default function ProjectManager() {
                 <form onSubmit={handleSaveEgoSettings} className="space-y-6">
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Pay Rate (e.g. 300₹ (3$))</label>
-                    <input type="text" value={egoPayRate} onChange={(e) => setEgoPayRate(e.target.value)} required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                    <input type="text" value={egoPayRate} onChange={(e) => setEgoPayRate(e.target.value)} required className="w-full px-4 py-3 bg-blue-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Live Support Link (Telegram)</label>
-                    <input type="url" value={egoTelegramLink} onChange={(e) => setEgoTelegramLink(e.target.value)} required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                    <input type="url" value={egoTelegramLink} onChange={(e) => setEgoTelegramLink(e.target.value)} required className="w-full px-4 py-3 bg-blue-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Terms and Conditions (Consent Form)</label>
-                    <textarea value={egoTerms} onChange={(e) => setEgoTerms(e.target.value)} required rows={4} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"></textarea>
+                    <textarea value={egoTerms} onChange={(e) => setEgoTerms(e.target.value)} required rows={4} className="w-full px-4 py-3 bg-blue-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"></textarea>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Project Instructions</label>
-                    <textarea value={egoInstructions} onChange={(e) => setEgoInstructions(e.target.value)} required rows={4} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"></textarea>
+                    <textarea value={egoInstructions} onChange={(e) => setEgoInstructions(e.target.value)} required rows={4} className="w-full px-4 py-3 bg-blue-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"></textarea>
                   </div>
                   <div className="pt-4 border-t border-slate-100 flex justify-end">
                     <button type="submit" disabled={isSavingEgo} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 disabled:opacity-50">
@@ -755,7 +755,7 @@ export default function ProjectManager() {
                 <select 
                   value={analysisProjectStatusFilter} 
                   onChange={e => setAnalysisProjectStatusFilter(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-blue-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="All">All Statuses</option>
                   <option value="active">Active</option>
@@ -768,7 +768,7 @@ export default function ProjectManager() {
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {analysisData?.projectStats?.filter((stat: any) => analysisProjectStatusFilter === 'All' || (stat.status || 'active') === analysisProjectStatusFilter).map((stat: any) => (
-                    <div key={stat.projectId} className="p-4 bg-slate-50 rounded-xl border border-slate-200 relative group">
+                    <div key={stat.projectId} className="p-4 bg-blue-50 rounded-xl border border-slate-200 relative group">
                       <p className="text-sm font-bold text-slate-500 line-clamp-1 pr-12">{stat.title}</p>
                       <p className="text-3xl font-black text-blue-600 mt-2">{stat.applicantCount}</p>
                       <span className={`absolute top-4 right-4 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${(stat.status || 'active') === 'active' ? 'bg-green-100 text-green-700' : (stat.status || 'active') === 'inactive' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'} opacity-0 group-hover:opacity-100 transition-opacity`}>
@@ -847,7 +847,7 @@ export default function ProjectManager() {
 
               <div className="overflow-x-auto border border-slate-200 rounded-xl mb-8">
                 <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
+                  <thead className="bg-blue-50 border-b border-slate-200 text-slate-700">
                     <tr>
                       <th className="p-3 font-bold">Name</th>
                       <th className="p-3 font-bold">Email</th>
@@ -893,7 +893,7 @@ export default function ProjectManager() {
                 </table>
               </div>
 
-              <div className="bg-slate-50 p-6 rounded-2xl border border-blue-100">
+              <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-200 pb-6 md:pb-0 md:pr-6 flex flex-col">
                     <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Send className="w-4 h-4 text-blue-600"/> Send Targeted Notification</h3>
@@ -950,27 +950,27 @@ export default function ProjectManager() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Project Title</label>
-                  <input required type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                  <input required type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Category</label>
-                  <input required type="text" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                  <input required type="text" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Pay Rate</label>
-                  <input required type="text" value={formData.payRate} onChange={e => setFormData({ ...formData, payRate: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                  <input required type="text" value={formData.payRate} onChange={e => setFormData({ ...formData, payRate: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Telegram Link (Optional)</label>
-                  <input type="url" value={formData.telegramLink || ''} onChange={e => setFormData({ ...formData, telegramLink: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" placeholder="https://t.me/..." />
+                  <input type="url" value={formData.telegramLink || ''} onChange={e => setFormData({ ...formData, telegramLink: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" placeholder="https://t.me/..." />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-900">Deadline (Optional)</label>
-                  <input type="date" value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''} onChange={e => setFormData({ ...formData, deadline: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                  <input type="date" value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''} onChange={e => setFormData({ ...formData, deadline: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                 </div>
                 <div className="space-y-2 col-span-2">
                   <label className="text-sm font-bold text-slate-900">Terms & Conditions (Optional)</label>
-                  <textarea value={formData.termsAndConditions || ''} onChange={e => setFormData({ ...formData, termsAndConditions: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific terms contributors must agree to before applying..." />
+                  <textarea value={formData.termsAndConditions || ''} onChange={e => setFormData({ ...formData, termsAndConditions: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific terms contributors must agree to before applying..." />
                 </div>
                 <div className="space-y-2 col-span-2">
                   <div className="flex items-center gap-3 mb-2">
@@ -1008,11 +1008,11 @@ export default function ProjectManager() {
                       {coverImageSource === 'public' ? (
                         <div className="space-y-2">
                           <label className="text-sm font-bold text-slate-900">Image Filename</label>
-                          <input type="text" placeholder="e.g. banner1.jpg" value={publicCoverImageName} onChange={e => setPublicCoverImageName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                          <input type="text" placeholder="e.g. banner1.jpg" value={publicCoverImageName} onChange={e => setPublicCoverImageName(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                           <p className="text-xs text-slate-500">The image must exist in the public folder.</p>
                         </div>
                       ) : (
-                        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:bg-slate-50 transition-colors">
+                        <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:bg-blue-50 transition-colors">
                           {coverImagePreview ? (
                             <div className="relative w-full">
                               <img src={coverImagePreview} alt="Preview" className="h-48 w-full object-cover rounded-lg" />
@@ -1049,21 +1049,21 @@ export default function ProjectManager() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Short Description</label>
-                <textarea value={formData.shortDescription} onChange={e => setFormData({ ...formData, shortDescription: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
+                <textarea value={formData.shortDescription} onChange={e => setFormData({ ...formData, shortDescription: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900 flex justify-between items-center">
                   <span>Project Details (Shown inline when expanded)</span>
                   <span className="font-normal text-xs text-slate-500">Use **text** for bold, *text* for italic</span>
                 </label>
-                <textarea value={formData.projectDetails} onChange={e => setFormData({ ...formData, projectDetails: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
+                <textarea value={formData.projectDetails} onChange={e => setFormData({ ...formData, projectDetails: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900 flex justify-between items-center">
                   <span>Project Instructions (Shown in submissions form)</span>
                   <span className="font-normal text-xs text-slate-500">Use **text** for bold, *text* for italic</span>
                 </label>
-                <textarea value={formData.projectInstructions || ''} onChange={e => setFormData({ ...formData, projectInstructions: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific instructions for how to submit work..." />
+                <textarea value={formData.projectInstructions || ''} onChange={e => setFormData({ ...formData, projectInstructions: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific instructions for how to submit work..." />
               </div>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
@@ -1087,7 +1087,7 @@ export default function ProjectManager() {
         {activeProject && !isCreating && (
           <div className={`flex flex-col ${activeProjectTab === 'messages' ? 'h-[calc(100vh-180px)]' : 'min-h-[calc(100vh-180px)]'}`}>
             <div className="flex items-center gap-4 mb-6 shrink-0">
-              <button onClick={() => { setActiveProject(null); window.location.hash = 'projects'; }} className="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600">
+              <button onClick={() => { setActiveProject(null); window.location.hash = 'projects'; }} className="p-2 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 text-slate-600">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <h2 className="text-3xl font-bold text-slate-900">{activeProject.title}</h2>
@@ -1108,7 +1108,7 @@ export default function ProjectManager() {
                 <button
                   key={tab.id}
                   onClick={() => { setActiveProjectTab(tab.id as any); setTargetContributorId(null); window.location.hash = `project_${activeProject._id}_${tab.id}`; }}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap relative ${activeProjectTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all whitespace-nowrap relative ${activeProjectTab === tab.id ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' : 'bg-white border border-slate-200 text-slate-600 hover:bg-blue-50'}`}
                 >
                   <tab.icon className="w-4 h-4" /> {tab.label}
                   {tab.id === 'messages' && unreadMessagesData?.hasUnread && (
@@ -1125,15 +1125,15 @@ export default function ProjectManager() {
                 <div className="p-8">
                   <h3 className="text-xl font-bold text-slate-900 mb-6">Project Overview</h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="p-6 bg-blue-50 rounded-2xl border border-slate-100">
                       <p className="text-slate-500 font-bold mb-2">Category</p>
                       <p className="text-xl font-black text-slate-900">{activeProject.category}</p>
                     </div>
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="p-6 bg-blue-50 rounded-2xl border border-slate-100">
                       <p className="text-slate-500 font-bold mb-2">Pay Rate</p>
                       <p className="text-xl font-black text-green-600">{activeProject.payRate}</p>
                     </div>
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="p-6 bg-blue-50 rounded-2xl border border-slate-100">
                       <p className="text-slate-500 font-bold mb-2">Live Support</p>
                       {activeProject.telegramLink ? (
                         <a href={activeProject.telegramLink} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:underline break-all">{activeProject.telegramLink}</a>
@@ -1141,7 +1141,7 @@ export default function ProjectManager() {
                         <p className="text-slate-400 font-medium">Not provided</p>
                       )}
                     </div>
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="p-6 bg-blue-50 rounded-2xl border border-slate-100">
                       <p className="text-slate-500 font-bold mb-2">Visibility</p>
                       <p className="text-lg font-bold text-slate-700">
                         {activeProject.homepageVisible && <span className="block">🌍 Homepage</span>}
@@ -1216,11 +1216,11 @@ export default function ProjectManager() {
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-900">Project Title</label>
-                        <input name="title" defaultValue={activeProject.title} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                        <input name="title" defaultValue={activeProject.title} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-900">Status</label>
-                        <select name="status" defaultValue={activeProject.status} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
+                        <select name="status" defaultValue={activeProject.status} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2">
                           <option value="active">Active</option>
                           <option value="inactive">Inactive</option>
                           <option value="archived">Archived</option>
@@ -1228,37 +1228,37 @@ export default function ProjectManager() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-900">Pay Rate</label>
-                        <input name="payRate" defaultValue={activeProject.payRate} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                        <input name="payRate" defaultValue={activeProject.payRate} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-900">Telegram Link</label>
-                        <input name="telegramLink" defaultValue={activeProject.telegramLink} type="url" placeholder="https://t.me/..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                        <input name="telegramLink" defaultValue={activeProject.telegramLink} type="url" placeholder="https://t.me/..." className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-900">Deadline</label>
-                        <input name="deadline" type="date" defaultValue={activeProject.deadline ? new Date(activeProject.deadline).toISOString().split('T')[0] : ''} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                        <input name="deadline" type="date" defaultValue={activeProject.deadline ? new Date(activeProject.deadline).toISOString().split('T')[0] : ''} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm font-bold text-slate-900">Terms & Conditions</label>
-                        <textarea name="termsAndConditions" defaultValue={activeProject.termsAndConditions} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific terms contributors must agree to before applying..." />
+                        <textarea name="termsAndConditions" defaultValue={activeProject.termsAndConditions} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific terms contributors must agree to before applying..." />
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm font-bold text-slate-900">Short Description</label>
-                        <textarea name="shortDescription" defaultValue={activeProject.shortDescription} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
+                        <textarea name="shortDescription" defaultValue={activeProject.shortDescription} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm font-bold text-slate-900 flex justify-between items-center">
                           <span>Project Details</span>
                           <span className="font-normal text-xs text-slate-500">Use **text** for bold, *text* for italic</span>
                         </label>
-                        <textarea name="projectDetails" defaultValue={activeProject.projectDetails} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
+                        <textarea name="projectDetails" defaultValue={activeProject.projectDetails} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" />
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-sm font-bold text-slate-900 flex justify-between items-center">
                           <span>Project Instructions (Shown in submissions form)</span>
                           <span className="font-normal text-xs text-slate-500">Use **text** for bold, *text* for italic</span>
                         </label>
-                        <textarea name="projectInstructions" defaultValue={activeProject.projectInstructions} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific instructions for how to submit work..." />
+                        <textarea name="projectInstructions" defaultValue={activeProject.projectInstructions} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2 min-h-[150px]" placeholder="Specific instructions for how to submit work..." />
                       </div>
                       <div className="flex gap-4 md:col-span-2">
                         <label className="flex items-center gap-2 font-bold text-slate-700 cursor-pointer">
@@ -1307,11 +1307,11 @@ export default function ProjectManager() {
                           {settingsCoverImageSource === 'public' ? (
                             <div className="space-y-2">
                               <label className="text-sm font-bold text-slate-900">Image Filename</label>
-                              <input type="text" placeholder="e.g. banner1.jpg" value={settingsPublicCoverImageName} onChange={e => setSettingsPublicCoverImageName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2" />
+                              <input type="text" placeholder="e.g. banner1.jpg" value={settingsPublicCoverImageName} onChange={e => setSettingsPublicCoverImageName(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
                               <p className="text-xs text-slate-500">The image must exist in the public folder.</p>
                             </div>
                           ) : (
-                            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:bg-slate-50 transition-colors">
+                            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:bg-blue-50 transition-colors">
                               {(settingsCoverImagePreview || (activeProject.coverImage?.url && !settingsRemoveCoverImage) || (activeProject.bannerImage && !settingsRemoveCoverImage)) ? (
                                 <div className="relative w-full">
                                   <img src={settingsCoverImagePreview || activeProject.coverImage?.url || activeProject.bannerImage} alt="Preview" className="h-48 w-full object-cover rounded-lg" />
@@ -1361,7 +1361,7 @@ export default function ProjectManager() {
       <Modal {...modalConfig} />
 
       {isEmailModalOpen && createPortal(
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden border border-slate-200">
             <div className="p-6 sm:p-8 bg-slate-900 text-white relative">
               <h3 className="text-2xl font-display font-bold">Email Filtered Contributors</h3>
@@ -1382,7 +1382,7 @@ export default function ProjectManager() {
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   placeholder="e.g., Update on Egocentric Project"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
@@ -1393,7 +1393,7 @@ export default function ProjectManager() {
                   onChange={(e) => setEmailBody(e.target.value)}
                   rows={8}
                   placeholder="Write your message here..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                  className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
                 />
               </div>
 
@@ -1544,7 +1544,7 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
         )}
       </div>
       <table className="w-full text-left text-sm">
-        <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
+        <thead className="bg-blue-50 border-b border-slate-200 sticky top-0">
           <tr>
             <th className="p-4 font-bold text-slate-900">Contributor</th>
             <th className="p-4 font-bold text-slate-900">Email</th>
@@ -1555,7 +1555,7 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
         </thead>
         <tbody className="divide-y divide-slate-100">
           {filteredApps?.map((app: any) => (
-            <tr key={app._id} className="hover:bg-slate-50">
+            <tr key={app._id} className="hover:bg-blue-50">
               <td className="p-4 font-medium text-slate-900">{app.contributorId.fullName}</td>
               <td className="p-4 text-slate-600">{app.contributorId.email}</td>
               <td className="p-4 text-slate-600">{app.contributorId.experience || '-'}</td>
@@ -1680,7 +1680,7 @@ function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectI
               {sub.notes && (
                 <div>
                   <span className="text-xs font-bold uppercase text-slate-400">Notes:</span>
-                  <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded-lg">{sub.notes}</p>
+                  <p className="text-sm text-slate-600 bg-blue-50 p-2 rounded-lg">{sub.notes}</p>
                 </div>
               )}
             </div>
@@ -1695,7 +1695,7 @@ function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectI
               
               <div className="space-y-2 mt-auto">
                 <select 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"
+                  className="w-full bg-blue-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"
                   onChange={(e) => {
                     const status = e.target.value;
                     const subId = sub._id;
@@ -1801,7 +1801,7 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
 
   return (
     <div className="flex flex-col h-full lg:flex-row">
-      <div className="lg:w-1/3 p-6 border-r border-slate-100 bg-slate-50/50 flex flex-col">
+      <div className="lg:w-1/3 p-6 border-r border-slate-100 bg-blue-50/50 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h4 className="font-bold text-slate-900">Record New Payment</h4>
           {payRate && <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-md">{payRate}</span>}
@@ -1924,7 +1924,7 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
             <button 
               key={app.contributorId._id}
               onClick={() => setSelectedUser(app.contributorId)}
-              className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-blue-300 transition-colors"
+              className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-colors"
             >
               <div className="text-left flex items-center gap-3">
                 <div className="relative">

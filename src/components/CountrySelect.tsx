@@ -45,7 +45,7 @@ export default function CountrySelect({ value, onChange, error }: CountrySelectP
   return (
     <div ref={wrapperRef} className="relative">
       <div 
-        className={`flex items-center w-full bg-white border ${error ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors backdrop-blur-sm cursor-text`}
+        className={`flex items-center w-full bg-white border ${error ? 'border-red-500' : 'border-slate-300'} rounded-xl px-4 py-3 text-slate-900 focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors cursor-text`}
         onClick={() => setIsOpen(true)}
       >
         {isOpen && <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />}
@@ -80,7 +80,7 @@ export default function CountrySelect({ value, onChange, error }: CountrySelectP
                   setSearch(country.name);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-3 text-sm cursor-pointer flex justify-between items-center hover:bg-slate-50 transition-colors ${value === country.name || value === country.code ? 'bg-slate-100 font-bold text-slate-900' : 'text-slate-700'}`}
+                className={`px-4 py-3 text-sm cursor-pointer flex justify-between items-center hover:bg-blue-50 transition-colors ${value === country.name || value === country.code ? 'bg-slate-100 font-bold text-slate-900' : 'text-slate-700'}`}
               >
                 <span>{country.name}</span>
                 <span className="text-slate-400 font-medium text-xs">{country.dial_code}</span>

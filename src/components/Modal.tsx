@@ -73,13 +73,13 @@ export default function Modal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 transition-opacity"
         onClick={onClose}
       />
       
       {/* Modal Panel */}
       <div className="relative bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden transform transition-all scale-100 opacity-100">
-        <div className="flex items-start justify-between p-6 border-b border-slate-50 bg-slate-50/50">
+        <div className="flex items-start justify-between p-6 border-b border-slate-50 bg-blue-50/50">
           <div className="flex items-center gap-4">
             <div className={`p-2 rounded-2xl ${variant === 'success' ? 'bg-green-100' : variant === 'error' ? 'bg-red-100' : variant === 'warning' ? 'bg-amber-100' : 'bg-blue-100'}`}>
               {styles.icon}
@@ -103,7 +103,7 @@ export default function Modal({
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={promptPlaceholder}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow shadow-inner"
+                className="w-full bg-blue-50 border border-slate-200 text-slate-900 rounded-2xl px-4 py-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow shadow-inner"
                 autoFocus
               />
             </div>
@@ -116,7 +116,7 @@ export default function Modal({
           )}
         </div>
         
-        <div className="bg-slate-50/80 border-t border-slate-100 px-6 py-5 flex justify-end gap-3 rounded-b-3xl">
+        <div className="bg-blue-50/80 border-t border-slate-100 px-6 py-5 flex justify-end gap-3 rounded-b-3xl">
           {type !== 'alert' && (
             <button 
               onClick={onClose}

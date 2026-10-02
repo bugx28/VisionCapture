@@ -97,7 +97,7 @@ export default function ProjectChat({ projectId, projectName, token, currentUser
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
+    <div className="flex flex-col h-full bg-blue-50">
       {(onBack || receiverName || projectName) && (
         <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
@@ -148,7 +148,7 @@ export default function ProjectChat({ projectId, projectName, token, currentUser
             onChange={(e) => setContent(e.target.value)}
             placeholder="Type your message..."
             rows={2}
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-300 resize-y min-h-[44px]"
+            className="flex-1 bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-300 resize-y min-h-[44px]"
           />
           <button
             type="submit"

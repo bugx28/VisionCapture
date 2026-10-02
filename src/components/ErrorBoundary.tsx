@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
+        <div className="min-h-screen bg-blue-50 flex flex-col items-center justify-center p-8">
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-red-200 max-w-3xl w-full">
             <h1 className="text-3xl font-bold text-red-600 mb-4">Something went wrong.</h1>
             <p className="text-slate-700 mb-6">A crash occurred in the React application.</p>

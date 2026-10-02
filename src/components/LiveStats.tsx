@@ -66,16 +66,16 @@ export default function LiveStats() {
   ];
 
   return (
-    <section className="py-20 bg-slate-50 border-y border-slate-200">
+    <section className="py-12 sm:py-20 bg-blue-50 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Platform Impact</h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-3 sm:mb-4">Platform Impact</h2>
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
             Our growing community is making a real difference in the world of embodied AI.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-8 max-w-3xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 max-w-3xl mx-auto">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -85,12 +85,12 @@ export default function LiveStats() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-3xl p-8 text-center border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col items-center hover:-translate-y-1 transition-transform w-full sm:w-1/2"
+                className="bg-white rounded-3xl p-6 sm:p-8 text-center border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col items-center hover:-translate-y-1 transition-transform w-full sm:w-1/2"
               >
-                <div className={`w-16 h-16 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-6`}>
-                  <Icon className="w-8 h-8" />
+                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 sm:mb-6`}>
+                  <Icon className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
-                <div className="text-4xl font-black text-slate-900 mb-2 font-display">
+                <div className="text-3xl sm:text-4xl font-black text-slate-900 mb-2 font-display">
                   {typeof stat.value === 'string' && stat.value.includes('+') ? (
                     <CountUp to={stat.value.replace('+', '')} />
                   ) : (

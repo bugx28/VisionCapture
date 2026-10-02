@@ -5,6 +5,14 @@ import { Glasses, Database, Settings, Brain, FileVideo } from 'lucide-react';
 export default function ProcessFlow() {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const steps = [
     {
@@ -33,7 +41,7 @@ export default function ProcessFlow() {
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8 relative z-20" ref={containerRef}>
+    <div className="w-full max-w-7xl mx-auto py-10 sm:py-20 px-4 sm:px-6 lg:px-8 relative z-20" ref={containerRef}>
 
       <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8 relative">
 
@@ -54,7 +62,7 @@ export default function ProcessFlow() {
               className="drop-shadow-[0_0_8px_rgba(71,85,105,0.3)]"
             />
           </svg>
-          
+
           {/* Moving File Icons */}
           {isInView && (
             <>
@@ -63,19 +71,19 @@ export default function ProcessFlow() {
                   key={`file-${i}`}
                   className="absolute top-[-12px]"
                   initial={{ left: '0%', opacity: 0, scale: 0.5 }}
-                  animate={{ 
-                    left: '100%', 
+                  animate={{
+                    left: '100%',
                     opacity: [0, 1, 1, 0],
                     scale: [0.5, 1, 1, 0.5]
                   }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: Infinity, 
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
                     delay: i * 1.3,
                     ease: "linear"
                   }}
                 >
-                  <div className="bg-white/80 backdrop-blur-sm p-1 rounded-md border border-slate-200 shadow-sm text-blue-500">
+                  <div className="bg-white/95 p-1 rounded-md border border-slate-200 shadow-sm text-blue-500">
                     <FileVideo className="w-4 h-4" />
                   </div>
                 </motion.div>
@@ -99,7 +107,7 @@ export default function ProcessFlow() {
                 <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-xl group-hover:bg-slate-300/60 transition-colors duration-500" />
 
                 {/* Icon Container */}
-                <div className="relative w-20 h-20 rounded-full bg-white border border-slate-200 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.05)] group-hover:border-slate-400/50 transition-colors">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.05)] group-hover:border-slate-400/50 transition-colors">
                   {/* Pulse effect */}
                   <motion.div
                     animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -110,7 +118,7 @@ export default function ProcessFlow() {
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-slate-900 mb-3 font-display">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 sm:mb-3 font-display">
                 {step.title}
               </h3>
               <p className="text-slate-700 text-sm leading-relaxed max-w-[280px]">
@@ -149,12 +157,12 @@ export default function ProcessFlow() {
           transition={{ duration: 0.8, delay: 2.2, type: "spring" }}
           className="w-full lg:w-[35%] z-10 mt-8 lg:mt-0"
         >
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-[2rem] p-6 shadow-xl hover:shadow-2xl transition-all duration-500 group relative">
+          <div className="bg-white/95 border border-slate-200 rounded-[2rem] p-5 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-500 group relative">
             {/* Glow dots where lines attach */}
             <div className="hidden lg:block absolute -left-2 top-[30%] w-3 h-3 rounded-full bg-slate-600 shadow-[0_0_10px_rgba(71,85,105,0.5)]" />
             <div className="hidden lg:block absolute -left-2 top-[70%] w-3 h-3 rounded-full bg-slate-600 shadow-[0_0_10px_rgba(71,85,105,0.5)]" />
 
-            <h3 className="text-xl font-bold text-slate-900 mb-2 font-display">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2 font-display">
               See Physical AI in Action
             </h3>
             <p className="text-slate-600 text-sm mb-6">
@@ -163,11 +171,11 @@ export default function ProcessFlow() {
 
             <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
               <video
-                autoPlay
+                autoPlay={!isMobile}
                 loop
                 muted
                 playsInline
-                preload="none"
+                preload={isMobile ? "metadata" : "none"}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
                 src="/orb-video.mp4"
               />

@@ -53,19 +53,54 @@ export default function Hero() {
     }
   };
 
+  const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // Defer heavy video download until after initial paint (LCP)
+    // ONLY download on desktop to save massive battery and GPU on mobile
+    const timer = setTimeout(() => {
+      if (window.innerWidth >= 768) {
+        setVideoSrc('/intro-video.mp4');
+      }
+    }, 500);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
   return (
-    <section className="relative min-h-[100dvh] flex flex-col pt-24 sm:pt-32 pb-12 sm:pb-20 overflow-hidden">
-      {/* Background Video */}
-      <div className="absolute inset-0 z-0 bg-slate-50">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          className="w-full h-full object-cover opacity-80"
-          src="/intro-video.mp4"
-        />
+    <section className="relative min-h-[100dvh] flex flex-col pt-20 sm:pt-32 pb-8 sm:pb-20 overflow-hidden">
+      {/* Background Media */}
+      <div className="absolute inset-0 z-0 bg-blue-50">
+        {isMobile ? (
+          <img
+            src="/ego.webp"
+            alt="Vision Capture Background"
+            className="w-full h-full object-cover opacity-80"
+          />
+        ) : (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="none"
+            poster="/ego.webp"
+            className="w-full h-full object-cover opacity-80 transition-opacity duration-1000"
+            src={videoSrc}
+          />
+        )}
       </div>
 
       <div className="w-full max-w-[1600px] mx-auto relative z-10 flex flex-col flex-1 px-4">
@@ -78,9 +113,9 @@ export default function Hero() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-full p-6 sm:p-8 lg:p-12 bg-black/10 backdrop-blur-sm rounded-3xl border border-black/20 shadow-2xl flex flex-col items-start text-left order-last lg:order-first"
+            className="w-full p-5 sm:p-8 lg:p-12 bg-white/70 sm:backdrop-blur-md rounded-3xl border border-white/50 shadow-2xl flex flex-col items-start text-left order-last lg:order-first"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/80 backdrop-blur-md text-white border border-slate-200 shadow-sm text-xs font-bold rounded-full uppercase tracking-wider mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/80 text-white border border-slate-200 shadow-sm text-xs font-bold rounded-full uppercase tracking-wider mb-6">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-600 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-600" />
@@ -88,14 +123,14 @@ export default function Hero() {
               India's Premier Data Infrastructure
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-extrabold tracking-tight text-black leading-[1.15] mb-6 drop-shadow-lg">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-display font-extrabold tracking-tight text-black leading-[1.15] mb-4 sm:mb-6 drop-shadow-lg">
               Real-world Data for <br />
               <span className="text-blue-600 drop-shadow-md">
                 Physical AI
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg lg:text-xl text-slate-800 mb-8 sm:mb-10 leading-relaxed max-w-2xl font-medium drop-shadow-md">
+            <p className="text-sm sm:text-lg lg:text-xl text-slate-800 mb-6 sm:mb-10 leading-relaxed max-w-2xl font-medium drop-shadow-md">
               We capture authentic human demonstrations and egocentric multimodal data to accelerate the development of next-generation intelligent robotics and embodied AI systems.
             </p>
 
@@ -109,7 +144,7 @@ export default function Hero() {
               </a>
               <a
                 href="#what-we-record"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-black/10 text-black font-bold hover:bg-black/20 transition-colors border border-black/30 backdrop-blur-md"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-black/10 text-black font-bold hover:bg-black/20 transition-colors border border-black/30"
               >
                 Recording Environments
               </a>
@@ -134,19 +169,19 @@ export default function Hero() {
               <p className="text-blue-700 text-base sm:text-lg font-medium">Start Earning Today</p>
             </div>
 
-            <div className="relative w-full h-[500px] sm:h-[560px] group">
+            <div className="relative w-full h-[420px] sm:h-[560px] group">
               {projectsData && projectsData.length > 1 && (
                 <>
                   <button
                     onClick={prevProject}
-                    className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 p-3 bg-white hover:bg-slate-50 text-slate-900 shadow-xl border border-slate-200 rounded-full transition-all z-30 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:flex hover:scale-110"
+                    className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 p-3 bg-white hover:bg-blue-50 text-slate-900 shadow-xl border border-slate-200 rounded-full transition-all z-30 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:flex hover:scale-110"
                     aria-label="Previous project"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
                   <button
                     onClick={nextProject}
-                    className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 p-3 bg-white hover:bg-slate-50 text-slate-900 shadow-xl border border-slate-200 rounded-full transition-all z-30 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:flex hover:scale-110"
+                    className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 p-3 bg-white hover:bg-blue-50 text-slate-900 shadow-xl border border-slate-200 rounded-full transition-all z-30 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:flex hover:scale-110"
                     aria-label="Next project"
                   >
                     <ChevronRight className="w-6 h-6" />
@@ -180,14 +215,14 @@ export default function Hero() {
                               <span className="px-3 py-1 bg-blue-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-blue-400/30">Featured</span>
                               <span className="px-3 py-1 bg-green-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-green-400/30">High Pay</span>
                             </div>
-                            <h3 className="text-3xl sm:text-4xl font-display font-bold text-white mb-3 leading-tight">
+                            <h3 className="text-2xl sm:text-4xl font-display font-bold text-white mb-2 sm:mb-3 leading-tight">
                               {currentProject.title}
                             </h3>
                             <p className="text-slate-200 text-sm sm:text-base mb-4 leading-relaxed">
                               Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.
                             </p>
 
-                            <div className="mb-6 space-y-2 bg-slate-900/40 backdrop-blur-md p-4 rounded-xl border border-white/10">
+                            <div className="mb-6 space-y-2 bg-slate-900/40 p-4 rounded-xl border border-white/10">
                               <div className="text-xs font-bold text-blue-300 uppercase tracking-wide">Quick Requirements</div>
                               <ul className="space-y-1.5">
                                 <li className="flex items-start gap-2 text-white text-sm font-medium">
@@ -207,7 +242,7 @@ export default function Hero() {
                               </div>
                               <a
                                 href="/signup?project=Egocentric%20Video%20Contributors"
-                                className="flex items-center justify-center gap-2 w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors shadow-xl shadow-blue-600/30 text-lg group"
+                                className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors shadow-xl shadow-blue-600/30 text-base sm:text-lg group"
                               >
                                 Apply Now
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -217,7 +252,7 @@ export default function Hero() {
                         </>
                       ) : (
                         <>
-                          <div className="h-48 sm:h-56 bg-slate-100 overflow-hidden relative shrink-0">
+                          <div className="h-36 sm:h-56 bg-slate-100 overflow-hidden relative shrink-0">
                             {currentProject.coverImage?.url || currentProject.bannerImage ? (
                               <img
                                 src={currentProject.coverImage?.url || currentProject.bannerImage}
@@ -232,41 +267,41 @@ export default function Hero() {
                             )}
                           </div>
 
-                          <div className="p-6 sm:p-8 flex flex-col flex-1 pb-10">
-                          <div className="flex justify-between items-start mb-5">
-                            <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-wider rounded-full shadow-sm">
-                              {currentProject.category || 'General'}
-                            </span>
-                            <span className="px-4 py-1.5 bg-green-500 text-white font-black text-sm uppercase tracking-wide rounded-full shadow-md shadow-green-500/20">
-                              {currentProject.payRate}
-                            </span>
-                          </div>
+                          <div className="p-4 sm:p-8 flex flex-col flex-1 pb-6 sm:pb-10">
+                            <div className="flex justify-between items-start mb-5">
+                              <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-wider rounded-full shadow-sm">
+                                {currentProject.category || 'General'}
+                              </span>
+                              <span className="px-4 py-1.5 bg-green-500 text-white font-black text-sm uppercase tracking-wide rounded-full shadow-md shadow-green-500/20">
+                                {currentProject.payRate}
+                              </span>
+                            </div>
 
-                          <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 mb-3 leading-tight hover:text-blue-600 transition-colors">
-                            {currentProject.title}
-                          </h3>
+                            <h3 className="text-xl sm:text-3xl font-display font-bold text-slate-900 mb-2 sm:mb-3 leading-tight hover:text-blue-600 transition-colors line-clamp-2">
+                              {currentProject.title}
+                            </h3>
 
-                          <div className="mb-6 shrink-0">
-                            <p className="text-slate-600 text-sm md:text-base line-clamp-2 md:line-clamp-3 leading-relaxed font-medium">
-                              <FormattedText text={currentProject.shortDescription || 'Join this project to contribute to cutting-edge AI data collection.'} />
-                            </p>
-                          </div>
+                            <div className="mb-6 shrink-0">
+                              <p className="text-slate-600 text-sm md:text-base line-clamp-2 md:line-clamp-3 leading-relaxed font-medium">
+                                <FormattedText text={currentProject.shortDescription || 'Join this project to contribute to cutting-edge AI data collection.'} />
+                              </p>
+                            </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-auto">
+                            <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-auto">
                               {currentProject.estimatedDuration && (
-                                <div className="flex items-center gap-2 text-slate-700 font-medium bg-slate-50 px-3 py-2 rounded-xl">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-700 text-xs sm:text-sm font-medium bg-blue-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl">
                                   <Clock className="w-4 h-4 text-slate-400" />
                                   <span className="truncate">{currentProject.estimatedDuration}</span>
                                 </div>
                               )}
                               {currentProject.country && (
-                                <div className="flex items-center gap-2 text-slate-700 font-medium bg-slate-50 px-3 py-2 rounded-xl">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-700 text-xs sm:text-sm font-medium bg-blue-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl">
                                   <MapPin className="w-4 h-4 text-slate-400" />
                                   <span className="truncate">{currentProject.country}</span>
                                 </div>
                               )}
                               {currentProject.positions && (
-                                <div className="flex items-center gap-2 text-slate-700 font-medium bg-slate-50 px-3 py-2 rounded-xl">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-slate-700 text-xs sm:text-sm font-medium bg-blue-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl">
                                   <Briefcase className="w-4 h-4 text-slate-400" />
                                   <span className="truncate">{currentProject.positions} Openings</span>
                                 </div>
@@ -300,7 +335,7 @@ export default function Hero() {
                     )}
                   </motion.div>
                 ) : (
-                  <div className="absolute inset-0 bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-white/40 shadow-2xl flex flex-col items-center justify-center text-center">
+                  <div className="absolute inset-0 bg-white/95 rounded-3xl p-8 border border-white/40 shadow-2xl flex flex-col items-center justify-center text-center">
                     <Briefcase className="w-16 h-16 text-slate-300 mb-4" />
                     <h3 className="text-xl font-bold text-slate-900 mb-2">Check Back Soon</h3>
                     <p className="text-slate-600">New high-paying contributor projects are being posted regularly.</p>
@@ -313,7 +348,7 @@ export default function Hero() {
         </div>
 
         {/* Interactive Process Flow Section */}
-        <div className="w-full mt-12">
+        <div className="w-full mt-6 sm:mt-12">
           <ProcessFlow />
         </div>
 

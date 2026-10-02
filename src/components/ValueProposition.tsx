@@ -11,9 +11,9 @@ export default function ValueProposition() {
   ];
 
   return (
-    <section id="why-us" className="py-24 relative overflow-hidden">
+    <section id="why-us" className="py-12 sm:py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
 
           <div className="order-2 lg:order-1 relative">
             <motion.div
@@ -26,7 +26,7 @@ export default function ValueProposition() {
               {points.map((point, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-4 bg-white/60 backdrop-blur-xl border border-slate-200 p-4 rounded-xl shadow-sm hover:bg-white transition-colors"
+                  className="flex items-start gap-4 bg-white/95 border border-slate-200 p-4 rounded-xl shadow-sm hover:bg-white transition-colors"
                 >
                   <CheckCircle2 className="w-6 h-6 text-slate-900 shrink-0 mt-0.5" />
                   <p className="text-slate-700 font-medium text-sm leading-relaxed">{point}</p>
@@ -43,10 +43,10 @@ export default function ValueProposition() {
             className="order-1 lg:order-2"
           >
             <h2 className="text-xs font-bold text-slate-500 tracking-[0.2em] uppercase mb-4">The Vision Capture Advantage</h2>
-            <h3 className="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-6">
+            <h3 className="text-2xl sm:text-4xl font-display font-bold text-slate-900 mb-4 sm:mb-6">
               Built for Scale. <br /> Engineered for Quality.
             </h3>
-            <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+            <p className="text-slate-600 text-base sm:text-lg mb-6 sm:mb-8 leading-relaxed">
               We understand that the success of physical AI depends entirely on the quality of its training data. Our operations are designed from the ground up to handle complex, large-scale data collection without compromising on strict quality constraints.
             </p>
 

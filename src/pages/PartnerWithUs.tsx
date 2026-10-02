@@ -30,7 +30,7 @@ export default function PartnerWithUs() {
 
           {/* Right Side: Write to us */}
           <div className="w-full mt-6 lg:mt-0 lg:pt-6">
-            <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-slate-200 sticky top-32">
+            <div className="bg-white/95 p-8 rounded-3xl shadow-xl border border-slate-200 sticky top-32">
               <a href="mailto:info@visioncapture.in" className="flex flex-col items-center group">
                 <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

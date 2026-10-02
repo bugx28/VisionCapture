@@ -23,11 +23,11 @@ export default function HomepageProjects() {
   if (isLoading || !projects) return null;
 
   return (
-    <section className="py-16 sm:py-24 bg-slate-50 relative overflow-hidden" id="active-projects">
+    <section className="py-10 sm:py-24 bg-blue-50 relative overflow-hidden" id="active-projects">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-display font-extrabold text-slate-900 mb-6">Active Projects</h2>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-slate-900 mb-4 sm:mb-6">Active Projects</h2>
+          <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto">
             Join our open projects and start recording environments today.
           </p>
         </div>
@@ -55,15 +55,15 @@ export default function HomepageProjects() {
               <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-80 animate-[shine_4s_ease-in-out_infinite]" />
             </div>
 
-            <div className="h-48 bg-slate-800 overflow-hidden relative">
+            <div className="h-40 sm:h-48 bg-slate-800 overflow-hidden relative">
               <img src="/ego.webp" alt="Egocentric Video Contributors" loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500" />
               <div className="absolute top-4 left-4 z-20">
                 <span className="px-3 py-1 bg-blue-600 text-white font-bold text-xs uppercase tracking-wider rounded-full shadow-lg border border-blue-400/30">Featured</span>
               </div>
             </div>
 
-            <div className="p-6 sm:p-8 flex-1 flex flex-col relative z-20">
-              <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-3">Egocentric Video Contributors ( Remote)</h3>
+            <div className="p-5 sm:p-8 flex-1 flex flex-col relative z-20">
+              <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2 sm:mb-3">Egocentric Video Contributors ( Remote)</h3>
               <p className="text-blue-300 font-medium text-sm mb-2">Apply if you are Individual, Vendor, Has connections.</p>
               <p className="text-slate-300 text-sm mb-4 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
 
@@ -93,27 +93,27 @@ export default function HomepageProjects() {
           {/* Dynamic Projects */}
           {projects?.filter((p: any) => !p.isEgocentric).map((project: any) => (
             <div key={project._id} className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full relative">
-              <div className="h-48 bg-slate-100 overflow-hidden relative">
+              <div className="h-40 sm:h-48 bg-slate-100 overflow-hidden relative">
                 {(project.coverImage?.url || project.bannerImage) ? (
                   <img src={project.coverImage?.url || project.bannerImage} alt={project.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-300">
-                    <Database className="w-12 h-12" />
+                    <Database className="w-10 h-10 sm:w-12 sm:h-12" />
                   </div>
                 )}
               </div>
 
-              <div className="p-8 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-5">
-                  <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-wider rounded-full shadow-sm">
+              <div className="p-5 sm:p-8 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-4 sm:mb-5">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-full shadow-sm">
                     {project.category || 'General'}
                   </span>
-                  <span className="px-4 py-1.5 bg-green-500 text-white font-black text-sm uppercase tracking-wide rounded-full shadow-md shadow-green-500/20">
+                  <span className="px-3 sm:px-4 py-1 sm:py-1.5 bg-green-500 text-white font-black text-xs sm:text-sm uppercase tracking-wide rounded-full shadow-md shadow-green-500/20">
                     {project.payRate}
                   </span>
                 </div>
 
-                <h3 className="text-2xl font-display font-bold text-slate-900 mb-3 leading-tight hover:text-blue-600 transition-colors">
+                <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 mb-2 sm:mb-3 leading-tight hover:text-blue-600 transition-colors">
                   {project.title}
                 </h3>
                 

@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
 import SEO from '../components/SEO';
 import Hero from '../components/Hero';
-import LiveStats from '../components/LiveStats';
-import Services from '../components/Services';
-import ValueProposition from '../components/ValueProposition';
-import Industries from '../components/Industries';
-import WhatWeRecord from '../components/WhatWeRecord';
-import SampleVideoData from '../components/SampleVideoData';
-import HomepageProjects from '../components/HomepageProjects';
-import Contact from '../components/Contact';
-import About from '../components/About';
+const LiveStats = React.lazy(() => import('../components/LiveStats'));
+const Services = React.lazy(() => import('../components/Services'));
+const ValueProposition = React.lazy(() => import('../components/ValueProposition'));
+const Industries = React.lazy(() => import('../components/Industries'));
+const WhatWeRecord = React.lazy(() => import('../components/WhatWeRecord'));
+const SampleVideoData = React.lazy(() => import('../components/SampleVideoData'));
+const HomepageProjects = React.lazy(() => import('../components/HomepageProjects'));
+const Contact = React.lazy(() => import('../components/Contact'));
+const About = React.lazy(() => import('../components/About'));
 
 export default function Home() {
   const structuredData = {
@@ -68,15 +68,17 @@ export default function Home() {
         canonicalUrl="https://visioncapture.in"
       />
       <Hero />
-      <LiveStats />
-      <Services />
-      <ValueProposition />
-      <Industries />
-      <WhatWeRecord />
-      <SampleVideoData />
-      <HomepageProjects />
-      <Contact />
-      <About />
+      <React.Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>}>
+        <LiveStats />
+        <Services />
+        <ValueProposition />
+        <Industries />
+        <WhatWeRecord />
+        <SampleVideoData />
+        <HomepageProjects />
+        <Contact />
+        <About />
+      </React.Suspense>
     </main>
   );
 }

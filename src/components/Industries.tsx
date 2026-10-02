@@ -13,9 +13,9 @@ export default function Industries() {
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden">
+    <section className="py-12 sm:py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 mb-12">
+        <h2 className="text-xl sm:text-3xl font-display font-bold text-slate-900 mb-8 sm:mb-12">
           Empowering Innovation Across Industries
         </h2>
 
@@ -27,7 +27,7 @@ export default function Industries() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-center gap-2 px-6 py-3 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-full text-slate-700 font-medium hover:bg-white hover:border-slate-300 transition-colors cursor-default shadow-sm"
+              className="flex items-center gap-2 px-6 py-3 bg-white/95 border border-slate-200 rounded-full text-slate-700 font-medium hover:bg-white hover:border-slate-300 transition-colors cursor-default shadow-sm"
             >
               {ind.icon}
               <span className="text-sm">{ind.name}</span>

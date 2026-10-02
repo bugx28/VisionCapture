@@ -391,15 +391,15 @@ export default function Admin() {
     return (
       <div className="py-24 max-w-md mx-auto px-4">
         <h1 className="text-3xl font-bold text-slate-900 text-center mb-8">Admin Login</h1>
-        <form onSubmit={handleLogin} className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
+        <form onSubmit={handleLogin} className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
           {loginError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center font-medium">{loginError}</div>}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-900">Email</label>
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter admin email" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter admin email" className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-900">Password</label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter admin password" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter admin password" className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
           </div>
           <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Login</button>
         </form>
@@ -481,14 +481,14 @@ export default function Admin() {
 
       {/* Main Layout */}
       {activeTab === 'approvals' ? (
-        <div className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 mx-auto max-w-5xl">
+        <div className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 mx-auto max-w-5xl">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Pending Approvals</h2>
           {!approvalsData || approvalsData.length === 0 ? (
             <p className="text-slate-500 text-center py-10">No pending approvals.</p>
           ) : (
             <div className="space-y-6">
               {approvalsData.map((req: any) => (
-                <div key={req._id} className="border border-slate-200 rounded-2xl p-6 bg-slate-50">
+                <div key={req._id} className="border border-slate-200 rounded-2xl p-6 bg-blue-50">
                   <div className="flex justify-between items-start mb-4 border-b border-slate-200 pb-4">
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">
@@ -524,7 +524,7 @@ export default function Admin() {
           )}
         </div>
       ) : activeTab === 'platform_stats' ? (
-        <div className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 max-w-2xl mx-auto">
+        <div className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 max-w-2xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Homepage Platform Statistics</h2>
           <form onSubmit={(e) => {
             e.preventDefault();
@@ -538,15 +538,15 @@ export default function Admin() {
           }} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-900">Total Payments Paid</label>
-              <input type="text" name="totalPayments" defaultValue={platformStatsData?.totalPayments || '0'} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              <input type="text" name="totalPayments" defaultValue={platformStatsData?.totalPayments || '0'} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-900">Projects Delivered</label>
-              <input type="text" name="projectsDelivered" defaultValue={platformStatsData?.projectsDelivered || '0'} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              <input type="text" name="projectsDelivered" defaultValue={platformStatsData?.projectsDelivered || '0'} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-900">Happy Clients</label>
-              <input type="text" name="clientsServed" defaultValue={platformStatsData?.clientsServed || '0'} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+              <input type="text" name="clientsServed" defaultValue={platformStatsData?.clientsServed || '0'} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
             </div>
             <p className="text-sm text-slate-500">Note: Total Contributors is calculated automatically from registered users.</p>
             <button type="submit" disabled={updatePlatformStatsMutation.isPending} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
@@ -555,7 +555,7 @@ export default function Admin() {
           </form>
         </div>
       ) : activeTab === 'referral_settings' ? (
-        <div className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 max-w-2xl mx-auto">
+        <div className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 max-w-2xl mx-auto">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Referral Settings & Prizes</h2>
           <form onSubmit={(e) => {
             e.preventDefault();
@@ -580,15 +580,15 @@ export default function Admin() {
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">🥇 1st Prize</label>
-                <input type="number" name="prize1" defaultValue={referralSettingsData?.prizeAmounts ? JSON.parse(referralSettingsData.prizeAmounts)[0]?.amount : 3000} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="number" name="prize1" defaultValue={referralSettingsData?.prizeAmounts ? JSON.parse(referralSettingsData.prizeAmounts)[0]?.amount : 3000} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">🥈 2nd Prize</label>
-                <input type="number" name="prize2" defaultValue={referralSettingsData?.prizeAmounts ? JSON.parse(referralSettingsData.prizeAmounts)[1]?.amount : 1000} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="number" name="prize2" defaultValue={referralSettingsData?.prizeAmounts ? JSON.parse(referralSettingsData.prizeAmounts)[1]?.amount : 1000} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">🥉 3rd Prize</label>
-                <input type="number" name="prize3" defaultValue={referralSettingsData?.prizeAmounts ? JSON.parse(referralSettingsData.prizeAmounts)[2]?.amount : 500} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="number" name="prize3" defaultValue={referralSettingsData?.prizeAmounts ? JSON.parse(referralSettingsData.prizeAmounts)[2]?.amount : 500} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
             </div>
             <button type="submit" disabled={updateReferralSettingsMutation.isPending} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
@@ -604,7 +604,7 @@ export default function Admin() {
         </div>
       ) : activeTab === 'project_managers' ? (
         <div className="grid lg:grid-cols-2 gap-8">
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8 h-fit">
+          <div className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 h-fit">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Create Project Manager</h2>
             <form onSubmit={handleCreatePm} className="space-y-6">
               {pmStatus && (
@@ -614,22 +614,22 @@ export default function Admin() {
               )}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Email Address</label>
-                <input type="email" required value={pmEmail} onChange={e => setPmEmail(e.target.value)} placeholder="pm@visioncapture.in" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="email" required value={pmEmail} onChange={e => setPmEmail(e.target.value)} placeholder="pm@visioncapture.in" className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-900">Temporary Password</label>
-                <input type="password" required value={pmPassword} onChange={e => setPmPassword(e.target.value)} placeholder="Minimum 6 characters" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3" />
+                <input type="password" required value={pmPassword} onChange={e => setPmPassword(e.target.value)} placeholder="Minimum 6 characters" className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <button type="submit" className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
                 Create Account
               </button>
             </form>
           </div>
-          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-8">
+          <div className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Existing Project Managers</h2>
             <div className="space-y-4">
               {pmsData?.map((pm: any) => (
-                <div key={pm._id} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                <div key={pm._id} className="p-4 bg-blue-50 border border-slate-100 rounded-2xl">
                   {editingPmId === pm._id ? (
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -684,7 +684,7 @@ export default function Admin() {
       <div className="grid lg:grid-cols-3 gap-8">
         
         {/* LEFT PANEL (List) */}
-        <div className="lg:col-span-1 bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl p-6 flex flex-col h-[650px]">
+        <div className="lg:col-span-1 bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-6 flex flex-col h-[650px]">
           <div className="flex flex-col gap-3 mb-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-slate-900">
@@ -703,7 +703,7 @@ export default function Admin() {
               <select 
                 value={filterCountry} 
                 onChange={(e) => { setFilterCountry(e.target.value); setUsersPage(1); }}
-                className="w-full text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white transition-colors"
+                className="w-full text-sm font-semibold bg-blue-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white transition-colors"
               >
                 <option value="">All Countries</option>
                 {countriesData?.map((country: string) => (
@@ -730,7 +730,7 @@ export default function Admin() {
                     <div 
                       key={u._id} 
                       onClick={() => setSelectedUser(u)}
-                      className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedUser?._id === u._id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+                      className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedUser?._id === u._id ? 'bg-blue-50 border-blue-300' : 'bg-blue-50 border-slate-100 hover:bg-slate-100'}`}
                     >
                       <div className="flex items-center gap-3 w-full">
                         <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">{(usersPage - 1) * 20 + index + 1}</span>
@@ -787,7 +787,7 @@ export default function Admin() {
                     <div 
                       key={c._id} 
                       onClick={() => setSelectedContact(c)}
-                      className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedContact?._id === c._id ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+                      className={`p-4 border rounded-2xl flex flex-col cursor-pointer transition-colors ${selectedContact?._id === c._id ? 'bg-blue-50 border-blue-300' : 'bg-blue-50 border-slate-100 hover:bg-slate-100'}`}
                     >
                       <div className="flex items-center gap-3 w-full">
                         <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0">{(contactsPage - 1) * 20 + index + 1}</span>
@@ -828,7 +828,7 @@ export default function Admin() {
         </div>
 
         {/* RIGHT PANEL (Details) */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl border border-slate-200 shadow-xl rounded-3xl flex flex-col h-[650px] overflow-hidden">
+        <div className="lg:col-span-2 bg-white/95 border border-slate-200 shadow-xl rounded-3xl flex flex-col h-[650px] overflow-hidden">
           
           {/* Contributor Chat Details */}
           {activeTab === 'contributors' && (
@@ -853,7 +853,7 @@ export default function Admin() {
                   </div>
                   
                   {/* User Details Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-2 text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-100 overflow-y-auto max-h-24">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-2 text-[11px] bg-blue-50 p-2.5 rounded-xl border border-slate-100 overflow-y-auto max-h-24">
                     <div><span className="text-slate-400 block">Location</span><span className="font-semibold text-slate-700">{selectedUser.city}, {selectedUser.country}</span></div>
                     <div><span className="text-slate-400 block">Phone</span><span className="font-semibold text-slate-700">{selectedUser.phone}</span></div>
                     <div><span className="text-slate-400 block">Experience</span><span className="font-semibold text-slate-700">{selectedUser.experience}</span></div>
@@ -894,7 +894,7 @@ export default function Admin() {
                     }}
                     onChange={handleTextareaChange} 
                     placeholder="Type a message... (Press Enter for new line)" 
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-[360px] overflow-y-auto transition-all duration-200"
+                    className="flex-1 bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-[360px] overflow-y-auto transition-all duration-200"
                   />
                   <button type="submit" disabled={sendMessageMutation.isPending} className="bg-slate-900 text-white px-6 py-2 h-[48px] rounded-xl font-bold hover:bg-slate-800 transition-colors disabled:opacity-50">
                     {sendMessageMutation.isPending ? '...' : 'Send'}
@@ -932,7 +932,7 @@ export default function Admin() {
                     {deleteContactMutation.isPending ? 'Deleting...' : 'Delete Inquiry'}
                   </button>
                 </div>
-                <div className="p-6 flex-1 overflow-y-auto bg-slate-50/50">
+                <div className="p-6 flex-1 overflow-y-auto bg-blue-50/50">
                   {(selectedContact.serviceType || selectedContact.company) && (
                     <div className="inline-block bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full mb-6 border border-blue-200">
                       {selectedContact.serviceType || 'General Inquiry'}

@@ -39,7 +39,7 @@ export default function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200 shadow-sm rounded-3xl p-8 hover:bg-white transition-all"
+              className="bg-white/95 border border-slate-200 shadow-sm rounded-3xl p-8 hover:bg-white transition-all"
             >
               <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center mb-6 shadow-md">
                 <Target className="w-6 h-6 text-white" />
@@ -55,7 +55,7 @@ export default function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="bg-white/60 backdrop-blur-xl border border-slate-200 shadow-sm rounded-3xl p-8 sm:translate-y-8 hover:bg-white transition-all"
+              className="bg-white/95 border border-slate-200 shadow-sm rounded-3xl p-8 sm:translate-y-8 hover:bg-white transition-all"
             >
               <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center mb-6 shadow-md">
                 <Lightbulb className="w-6 h-6 text-white" />
