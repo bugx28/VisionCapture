@@ -26,7 +26,7 @@ export default function ProcessFlow() {
       icon: (
         <div className="relative">
           <Database className="w-8 h-8 text-slate-800" />
-          <Settings className="w-4 h-4 text-slate-500 absolute -bottom-1 -right-1 animate-[spin_4s_linear_infinite]" />
+          {!isMobile && <Settings className="w-4 h-4 text-slate-500 absolute -bottom-1 -right-1 animate-[spin_4s_linear_infinite]" />}
         </div>
       ),
       title: "Processing",
@@ -45,7 +45,7 @@ export default function ProcessFlow() {
 
       <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8 relative">
 
-        {/* Desktop Connection Line SVG (Behind items) */}
+        {/* Desktop Connection Line SVG (Behind items) — hidden on mobile */}
         <div className="hidden lg:block absolute top-[40%] left-[10%] right-[38%] h-1 z-0">
           <svg width="100%" height="100%" className="overflow-visible">
             {/* Background faint line */}
@@ -95,25 +95,18 @@ export default function ProcessFlow() {
         {/* The 3 Steps */}
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-8 w-full lg:w-[60%] z-10">
           {steps.map((step, index) => (
-            <motion.div
+            <div
               key={step.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.6, delay: index * 0.4 }}
               className="flex-1 flex flex-col items-center text-center group"
             >
               <div className="relative mb-6">
-                {/* Glowing ring */}
-                <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-xl group-hover:bg-slate-300/60 transition-colors duration-500" />
+                {/* Glowing ring — desktop only */}
+                {!isMobile && (
+                  <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-xl group-hover:bg-slate-300/60 transition-colors duration-500" />
+                )}
 
                 {/* Icon Container */}
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.05)] group-hover:border-slate-400/50 transition-colors">
-                  {/* Pulse effect */}
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
-                    transition={{ repeat: Infinity, duration: 2, delay: index * 0.3 }}
-                    className="absolute inset-0 rounded-full border border-slate-300"
-                  />
                   {step.icon}
                 </div>
               </div>
@@ -124,7 +117,7 @@ export default function ProcessFlow() {
               <p className="text-slate-700 text-sm leading-relaxed max-w-[280px]">
                 {step.desc}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
 
@@ -151,12 +144,7 @@ export default function ProcessFlow() {
         </div>
 
         {/* Step 4: Video Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.8, delay: 2.2, type: "spring" }}
-          className="w-full lg:w-[35%] z-10 mt-8 lg:mt-0"
-        >
+        <div className="w-full lg:w-[35%] z-10 mt-8 lg:mt-0">
           <div className="bg-white/95 border border-slate-200 rounded-[2rem] p-5 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-500 group relative">
             {/* Glow dots where lines attach */}
             <div className="hidden lg:block absolute -left-2 top-[30%] w-3 h-3 rounded-full bg-slate-600 shadow-[0_0_10px_rgba(71,85,105,0.5)]" />
@@ -170,19 +158,29 @@ export default function ProcessFlow() {
             </p>
 
             <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-              <video
-                autoPlay={!isMobile}
-                loop
-                muted
-                playsInline
-                preload={isMobile ? "metadata" : "none"}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-                src="/orb-video.mp4"
-              />
+              {isMobile ? (
+                <video
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                  src="/orb-video.mp4#t=0.001"
+                />
+              ) : (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="none"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+                  src="/orb-video.mp4"
+                />
+              )}
             </div>
 
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </div>

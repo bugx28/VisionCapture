@@ -93,3 +93,15 @@ body {
 .animate-shine {
   animation: shine 3s infinite linear;
 }
+
+/* Disable ALL animations on mobile for performance and battery */
+@media (max-width: 767px) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001s !important;
+    transition-delay: 0s !important;
+  }
+}

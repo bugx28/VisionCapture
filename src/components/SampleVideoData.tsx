@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 
 const samples = [
   {
@@ -24,7 +23,7 @@ const samples = [
   }
 ];
 
-function LazyVideo({ src }: { src: string }) {
+function LazyVideo({ src, title }: { src: string; title: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -58,15 +57,28 @@ function LazyVideo({ src }: { src: string }) {
     return () => observer.disconnect();
   }, [isMobile]);
 
+  // On mobile: show poster image from first frame, don't download video
+  if (isMobile) {
+    return (
+      <video
+        ref={videoRef}
+        src={`${src}#t=0.001`}
+        muted
+        playsInline
+        preload="metadata"
+        className="w-full h-full object-cover"
+      />
+    );
+  }
+
   return (
     <video
       ref={videoRef}
-      src={isMobile ? undefined : src}
+      src={src}
       loop
       muted
       playsInline
-      preload={isMobile ? "none" : "metadata"}
-      poster=""
+      preload="metadata"
       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
     />
   );
@@ -88,16 +100,12 @@ export default function SampleVideoData() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {samples.map((sample, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "100px" }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
               className="bg-white/95 border border-slate-200 rounded-2xl shadow-md overflow-hidden group cursor-pointer"
             >
               <div className="relative aspect-video overflow-hidden bg-slate-900">
-                <LazyVideo src={sample.video} />
+                <LazyVideo src={sample.video} title={sample.title} />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors pointer-events-none" />
 
                 {/* Category Badge */}
@@ -111,7 +119,7 @@ export default function SampleVideoData() {
                   {sample.title}
                 </h3>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
