@@ -61,11 +61,12 @@ function LazyVideo({ src }: { src: string }) {
   return (
     <video
       ref={videoRef}
-      src={src}
+      src={isMobile ? undefined : src}
       loop
       muted
       playsInline
-      preload="metadata"
+      preload={isMobile ? "none" : "metadata"}
+      poster=""
       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
     />
   );

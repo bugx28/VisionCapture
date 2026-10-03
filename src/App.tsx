@@ -33,11 +33,11 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
-      {/* Static Background Gradients (Animations removed for performance) */}
+      {/* Static Background Gradients — hidden on mobile to save GPU/battery */}
       <div className="fixed inset-0 z-[-1] overflow-hidden bg-blue-50">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-200/40 mix-blend-multiply filter blur-[100px]" />
-        <div className="absolute top-[20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-200/40 mix-blend-multiply filter blur-[120px]" />
-        <div className="absolute bottom-[-20%] left-[20%] w-[60%] h-[60%] rounded-full bg-sky-200/40 mix-blend-multiply filter blur-[100px]" />
+        <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-200/40 mix-blend-multiply filter blur-[100px]" />
+        <div className="hidden md:block absolute top-[20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-200/40 mix-blend-multiply filter blur-[120px]" />
+        <div className="hidden md:block absolute bottom-[-20%] left-[20%] w-[60%] h-[60%] rounded-full bg-sky-200/40 mix-blend-multiply filter blur-[100px]" />
       </div>
 
       <Header />

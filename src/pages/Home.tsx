@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import SEO from '../components/SEO';
-import Hero from '../components/Hero';
+const Hero = React.lazy(() => import('../components/Hero'));
 const LiveStats = React.lazy(() => import('../components/LiveStats'));
 const Services = React.lazy(() => import('../components/Services'));
 const ValueProposition = React.lazy(() => import('../components/ValueProposition'));
@@ -67,8 +67,8 @@ export default function Home() {
         description="Join Vision Capture to record POV videos of everyday tasks and help train the next generation of AI and robotics."
         canonicalUrl="https://visioncapture.in"
       />
-      <Hero />
-      <React.Suspense fallback={<div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>}>
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>}>
+        <Hero />
         <LiveStats />
         <Services />
         <ValueProposition />

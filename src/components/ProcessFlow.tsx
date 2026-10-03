@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView } from 'motion/react';
 import { Glasses, Database, Settings, Brain, FileVideo } from 'lucide-react';
 
 export default function ProcessFlow() {
