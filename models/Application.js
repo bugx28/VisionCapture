@@ -5,6 +5,8 @@ const ApplicationSchema = new mongoose.Schema({
   contributorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   status: { type: String, enum: ['Applied', 'Approved', 'Rejected'], default: 'Applied', index: true },
   formData: { type: mongoose.Schema.Types.Mixed }, // For dynamic application forms (e.g., Egocentric project)
+  termsHash: { type: String }, // SHA-256 hash of the agreed terms
+  agreedToTermsAt: { type: Date },
 }, { timestamps: true });
 
 // Prevent duplicate applications

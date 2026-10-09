@@ -10,7 +10,7 @@ export default function PartnerWithUs() {
         description="Partner with Vision Capture for high-quality, large-scale AI data collection. We specialize in egocentric and POV video data."
         canonicalUrl="https://visioncapture.in/partner-with-us"
       />
-      <div className="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="pt-8 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}
         <div className="text-center mb-12">

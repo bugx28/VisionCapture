@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Briefcase, Plus, Users, FileText, CreditCard, MessageSquare, ArrowLeft, Edit2, Trash2, Send, Mail, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +19,7 @@ export default function ProjectManager() {
   const queryClient = useQueryClient();
   const [token, setToken] = useState(localStorage.getItem('pmToken'));
   const [userStr, setUserStr] = useState(localStorage.getItem('pmUser'));
-  
+
   // Login State
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -37,7 +37,7 @@ export default function ProjectManager() {
   const [publicCoverImageName, setPublicCoverImageName] = useState('');
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
-  
+
   const [settingsCoverImageFile, setSettingsCoverImageFile] = useState<File | null>(null);
   const [settingsCoverImagePreview, setSettingsCoverImagePreview] = useState<string | null>(null);
   const [settingsRemoveCoverImage, setSettingsRemoveCoverImage] = useState(false);
@@ -67,7 +67,7 @@ export default function ProjectManager() {
     return 'projects';
   };
   const [globalTab, setGlobalTab] = useState<'projects' | 'contributors' | 'egocentric' | 'approvals'>(getInitialGlobalTab());
-  
+
   const getInitialEgocentricTab = () => {
     const hash = window.location.hash.replace('#', '');
     if (hash.startsWith('egocentric_')) {
@@ -82,7 +82,7 @@ export default function ProjectManager() {
     return 'overview';
   };
   const [egocentricTab, setEgocentricTab] = useState<'overview' | 'applications' | 'payments' | 'messages' | 'settings'>(getInitialEgocentricTab());
-  
+
   const { data: egoProjectData, refetch: refetchEgoProject } = useQuery({
     queryKey: ['pm-egocentric-project', token],
     queryFn: async () => {
@@ -157,7 +157,7 @@ export default function ProjectManager() {
   };
 
   const [notificationMsg, setNotificationMsg] = useState('');
-  
+
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
@@ -214,7 +214,7 @@ export default function ProjectManager() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      
+
       if (hash.startsWith('project_')) {
         const parts = hash.split('_');
         if (parts.length >= 3 && projectsData) {
@@ -247,7 +247,7 @@ export default function ProjectManager() {
         setActiveProject(null);
       }
     };
-    
+
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
@@ -305,7 +305,7 @@ export default function ProjectManager() {
   const createMutation = useMutation({
     mutationFn: async ({ metadata, coverImage }: { metadata: any, coverImage: File | null }) => {
       let finalMetadata = { ...metadata };
-      
+
       if (coverImage) {
         const formData = new FormData();
         formData.append('coverImage', coverImage);
@@ -343,7 +343,7 @@ export default function ProjectManager() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, metadata, coverImage }: { id: string, metadata: any, coverImage: File | null }) => {
       let finalMetadata = { ...metadata };
-      
+
       if (coverImage) {
         const formData = new FormData();
         formData.append('coverImage', coverImage);
@@ -418,10 +418,10 @@ export default function ProjectManager() {
     if (filterProject && !u.appliedProjectIds.includes(filterProject)) return false;
     if (filterTrustScore && (u.trustScore || 0) < Number(filterTrustScore)) return false;
     if (filterInterestedIn && !u.projectsInterestedIn?.includes(filterInterestedIn)) return false;
-    
+
     const completedList = u.completedProjectIds || [];
     const appliedList = u.appliedProjectIds || [];
-    
+
     let matchesStatus = true;
     if (filterWorkStatus === 'Successfully Completed') {
       matchesStatus = filterProject ? completedList.includes(filterProject) : completedList.length > 0;
@@ -432,7 +432,7 @@ export default function ProjectManager() {
         matchesStatus = appliedList.some((pid: string) => !completedList.includes(pid));
       }
     }
-    
+
     if (filterWorkStatus && !matchesStatus) return false;
 
     if (filterContributorProjectStatus !== 'All') {
@@ -479,10 +479,10 @@ export default function ProjectManager() {
   };
 
   return (
-    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-8 pb-12">
       <SEO title="PM Dashboard | Vision Capture" />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-8">
@@ -492,13 +492,13 @@ export default function ProjectManager() {
             </div>
             {!activeProject && !isCreating && (
               <div className="flex bg-slate-100 p-1 rounded-xl">
-                <button 
+                <button
                   onClick={() => { setGlobalTab('projects'); window.location.hash = 'projects'; }}
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${globalTab === 'projects' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   Projects
                 </button>
-                <button 
+                <button
                   onClick={() => { setGlobalTab('approvals'); window.location.hash = 'approvals'; }}
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${globalTab === 'approvals' ? 'bg-white shadow-sm text-amber-600' : 'text-slate-500 hover:text-slate-700'}`}
                 >
@@ -507,13 +507,13 @@ export default function ProjectManager() {
                     <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none">{approvalsData.length}</span>
                   )}
                 </button>
-                <button 
+                <button
                   onClick={() => { setGlobalTab('contributors'); window.location.hash = 'contributors'; }}
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${globalTab === 'contributors' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   Contributor Analysis
                 </button>
-                <button 
+                <button
                   onClick={() => { setGlobalTab('egocentric'); window.location.hash = 'egocentric'; }}
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${globalTab === 'egocentric' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
                 >
@@ -531,8 +531,8 @@ export default function ProjectManager() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-bold text-slate-900">Your Projects</h2>
-                <select 
-                  value={filterProjectStatus} 
+                <select
+                  value={filterProjectStatus}
                   onChange={e => setFilterProjectStatus(e.target.value)}
                   className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -575,7 +575,7 @@ export default function ProjectManager() {
                       <FormattedText text={project.shortDescription} />
                     </p>
                     <div className="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center text-sm font-medium text-slate-500">
-                      <span className="text-blue-600 flex items-center gap-1 font-bold">Manage <ChevronRight className="w-4 h-4"/></span>
+                      <span className="text-blue-600 flex items-center gap-1 font-bold">Manage <ChevronRight className="w-4 h-4" /></span>
                     </div>
                   </div>
                 ))}
@@ -604,7 +604,7 @@ export default function ProjectManager() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex border-t border-slate-200 bg-blue-50 p-2 overflow-x-auto">
                 {[
                   { id: 'overview', label: 'Overview' },
@@ -655,7 +655,7 @@ export default function ProjectManager() {
                 </div>
               </div>
             )}
-            
+
             {egocentricTab === 'applications' && (
               <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm h-[600px] overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-slate-200">
@@ -664,7 +664,7 @@ export default function ProjectManager() {
                 <ProjectApplications projectId={egoProjectData._id} token={token} isEgocentric={true} />
               </div>
             )}
-            
+
             {egocentricTab === 'settings' && (
               <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-6">Project Settings</h3>
@@ -693,7 +693,7 @@ export default function ProjectManager() {
                 </form>
               </div>
             )}
-            
+
             {egocentricTab === 'payments' && (
               <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm h-[600px] overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-slate-200">
@@ -728,9 +728,9 @@ export default function ProjectManager() {
                   <div key={approval._id} className="p-6 bg-amber-50 border border-amber-200 rounded-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-24 h-24 bg-amber-200/50 rounded-bl-full -z-0"></div>
                     <h4 className="font-bold text-amber-900 text-lg mb-2 z-10 relative">
-                      {approval.type === 'CREATE_PROJECT' ? 'New Project' : 
-                       approval.type === 'UPDATE_PROJECT' ? `Update: ${approval.projectId?.title || 'Unknown'}` : 
-                       'Update: Egocentric Settings'}
+                      {approval.type === 'CREATE_PROJECT' ? 'New Project' :
+                        approval.type === 'UPDATE_PROJECT' ? `Update: ${approval.projectId?.title || 'Unknown'}` :
+                          'Update: Egocentric Settings'}
                     </h4>
                     <p className="text-sm text-amber-700 z-10 relative mb-4">Status: <span className="font-bold uppercase tracking-wider">{approval.status}</span></p>
                     {approval.adminNotes && (
@@ -752,8 +752,8 @@ export default function ProjectManager() {
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-slate-900">Applicant Count per Project</h2>
-                <select 
-                  value={analysisProjectStatusFilter} 
+                <select
+                  value={analysisProjectStatusFilter}
                   onChange={e => setAnalysisProjectStatusFilter(e.target.value)}
                   className="bg-blue-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -782,7 +782,7 @@ export default function ProjectManager() {
 
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
               <h2 className="text-xl font-bold text-slate-900 mb-6">Contributor Directory</h2>
-              
+
               <div className="flex flex-col md:flex-row flex-wrap gap-4 mb-6">
                 <div className="flex-1 min-w-[150px]">
                   <label className="text-xs font-bold text-slate-500 mb-1 block">Filter by Country</label>
@@ -863,29 +863,30 @@ export default function ProjectManager() {
                     {filteredContributors.map((u: any) => {
                       const completedList = u.completedProjectIds || [];
                       return (
-                      <tr key={u._id}>
-                        <td className="p-3 font-medium text-slate-900">{u.fullName}</td>
-                        <td className="p-3 text-slate-600">{u.email}</td>
-                        <td className="p-3 text-slate-600">{u.country}</td>
-                        <td className="p-3 text-slate-600">{u.nativeLanguage}</td>
-                        <td className="p-3 font-bold text-green-600">{u.trustScore || 0}</td>
-                        <td className="p-3 text-slate-600">
-                          {filterProject ? (
-                            completedList.includes(filterProject) ? (
-                              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Successfully Completed</span>
+                        <tr key={u._id}>
+                          <td className="p-3 font-medium text-slate-900">{u.fullName}</td>
+                          <td className="p-3 text-slate-600">{u.email}</td>
+                          <td className="p-3 text-slate-600">{u.country}</td>
+                          <td className="p-3 text-slate-600">{u.nativeLanguage}</td>
+                          <td className="p-3 font-bold text-green-600">{u.trustScore || 0}</td>
+                          <td className="p-3 text-slate-600">
+                            {filterProject ? (
+                              completedList.includes(filterProject) ? (
+                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">Successfully Completed</span>
+                              ) : (
+                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">Working</span>
+                              )
                             ) : (
-                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">Working</span>
-                            )
-                          ) : (
-                            <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-full text-xs font-bold border border-slate-200">
-                              {completedList.length} / {u.appliedProjectIds.length} Completed
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 font-mono text-slate-600 text-xs">{u.upiId || 'N/A'}</td>
-                        <td className="p-3 text-blue-600 font-bold">{u.appliedProjectIds.length}</td>
-                      </tr>
-                    )})}
+                              <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-full text-xs font-bold border border-slate-200">
+                                {completedList.length} / {u.appliedProjectIds.length} Completed
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 font-mono text-slate-600 text-xs">{u.upiId || 'N/A'}</td>
+                          <td className="p-3 text-blue-600 font-bold">{u.appliedProjectIds.length}</td>
+                        </tr>
+                      )
+                    })}
                     {filteredContributors.length === 0 && (
                       <tr><td colSpan={8} className="p-6 text-center text-slate-500">No contributors match your filters.</td></tr>
                     )}
@@ -896,15 +897,15 @@ export default function ProjectManager() {
               <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-200 pb-6 md:pb-0 md:pr-6 flex flex-col">
-                    <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Send className="w-4 h-4 text-blue-600"/> Send Targeted Notification</h3>
+                    <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Send className="w-4 h-4 text-blue-600" /> Send Targeted Notification</h3>
                     <p className="text-xs text-slate-500 mb-4">This message will be sent to the {filteredContributors.length} users currently visible in the table above.</p>
-                    <textarea 
+                    <textarea
                       value={notificationMsg}
                       onChange={e => setNotificationMsg(e.target.value)}
                       placeholder="Type your notification message here..."
                       className="w-full border border-slate-200 rounded-xl p-3 text-sm h-24 mb-4"
                     />
-                    <button 
+                    <button
                       onClick={handleSendNotification}
                       disabled={filteredContributors.length === 0 || !notificationMsg.trim() || sendNotificationMutation.isPending}
                       className="bg-blue-600 text-white font-bold px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 mt-auto"
@@ -912,11 +913,11 @@ export default function ProjectManager() {
                       {sendNotificationMutation.isPending ? 'Sending...' : 'Send to Filtered Users'}
                     </button>
                   </div>
-                  
+
                   <div className="flex-1 flex flex-col">
-                    <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Mail className="w-4 h-4 text-blue-600"/> Send Mass Email</h3>
+                    <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Mail className="w-4 h-4 text-blue-600" /> Send Mass Email</h3>
                     <p className="text-xs text-slate-500 mb-4">Draft an email to send to the {filteredContributors.length} users currently visible in the table above.</p>
-                    <button 
+                    <button
                       onClick={() => setIsEmailModalOpen(true)}
                       disabled={filteredContributors.length === 0}
                       className="bg-slate-900 text-white font-bold px-6 py-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 mt-auto"
@@ -935,17 +936,17 @@ export default function ProjectManager() {
           <div className="max-w-5xl mx-auto bg-white p-8 rounded-3xl border border-slate-200 shadow-xl w-full">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
               <h2 className="text-2xl font-bold text-slate-900">Create New Project</h2>
-              <button onClick={() => { setIsCreating(false); setFormData(initialFormState); }} className="text-slate-400 hover:text-slate-600 p-2"><Trash2 className="w-5 h-5"/></button>
+              <button onClick={() => { setIsCreating(false); setFormData(initialFormState); }} className="text-slate-400 hover:text-slate-600 p-2"><Trash2 className="w-5 h-5" /></button>
             </div>
-            
-            <form onSubmit={(e) => { 
-              e.preventDefault(); 
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
               if (includeCoverImage && coverImageSource === 'public' && !publicCoverImageName) return showModal('Error', 'Please enter a public folder image filename', 'error');
-              
+
               const submitData = { ...formData } as any;
               if (includeCoverImage && coverImageSource === 'public') submitData.publicCoverImage = publicCoverImageName;
-              
-              createMutation.mutate({ metadata: submitData, coverImage: includeCoverImage && coverImageSource === 'blob' ? coverImageFile : null }); 
+
+              createMutation.mutate({ metadata: submitData, coverImage: includeCoverImage && coverImageSource === 'blob' ? coverImageFile : null });
             }} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -974,24 +975,24 @@ export default function ProjectManager() {
                 </div>
                 <div className="space-y-2 col-span-2">
                   <div className="flex items-center gap-3 mb-2">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       id="includeCoverImage"
-                      checked={includeCoverImage} 
+                      checked={includeCoverImage}
                       onChange={e => {
                         setIncludeCoverImage(e.target.checked);
                         if (!e.target.checked) {
                           setCoverImageFile(null);
                           setCoverImagePreview(null);
                         }
-                      }} 
-                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" 
+                      }}
+                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                     <label htmlFor="includeCoverImage" className="text-sm font-bold text-slate-900 cursor-pointer">
                       Add a Cover Image to this Project
                     </label>
                   </div>
-                  
+
                   {includeCoverImage && (
                     <div className="mt-2 space-y-4">
                       <div className="flex gap-4">
@@ -1004,7 +1005,7 @@ export default function ProjectManager() {
                           <span className="text-sm font-medium text-slate-700">Use Public Folder Image</span>
                         </label>
                       </div>
-                      
+
                       {coverImageSource === 'public' ? (
                         <div className="space-y-2">
                           <label className="text-sm font-bold text-slate-900">Image Filename</label>
@@ -1119,7 +1120,7 @@ export default function ProjectManager() {
             </div>
 
             <div className={`flex-1 bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col ${activeProjectTab === 'messages' ? 'overflow-hidden' : ''}`}>
-              
+
               {/* INNER TAB: OVERVIEW */}
               {activeProjectTab === 'overview' && (
                 <div className="p-8">
@@ -1160,9 +1161,9 @@ export default function ProjectManager() {
 
               {/* INNER TAB: SUBMISSIONS */}
               {activeProjectTab === 'submissions' && (
-                <ProjectSubmissions 
-                  projectId={activeProject._id} 
-                  token={token} 
+                <ProjectSubmissions
+                  projectId={activeProject._id}
+                  token={token}
                   deadline={activeProject.deadline}
                   onAction={(action, contributorId) => {
                     setTargetContributorId(contributorId);
@@ -1175,7 +1176,7 @@ export default function ProjectManager() {
               {activeProjectTab === 'payments' && (
                 <ProjectPayments projectId={activeProject._id} token={token} payRate={activeProject.payRate} targetContributorId={targetContributorId} />
               )}
-              
+
               {/* INNER TAB: MESSAGES */}
               {activeProjectTab === 'messages' && (
                 <ProjectMessages projectId={activeProject._id} projectName={activeProject.title} token={token} currentUserId={pmUser?.id || pmUser?._id} targetContributorId={targetContributorId} />
@@ -1185,10 +1186,10 @@ export default function ProjectManager() {
               {activeProjectTab === 'settings' && (
                 <div className="p-8 overflow-y-auto">
                   <h3 className="text-xl font-bold text-slate-900 mb-6">Edit Project Details</h3>
-                  <form onSubmit={(e) => { 
-                    e.preventDefault(); 
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
                     if (settingsIncludeCoverImage && settingsCoverImageSource === 'public' && !settingsPublicCoverImageName) {
-                       return showModal('Error', 'Please enter a public folder image filename', 'error');
+                      return showModal('Error', 'Please enter a public folder image filename', 'error');
                     }
 
                     const formData = new FormData(e.currentTarget);
@@ -1200,15 +1201,15 @@ export default function ProjectManager() {
                     });
                     metadata.homepageVisible = formData.get('homepageVisible') === 'on';
                     metadata.contributorVisible = formData.get('contributorVisible') === 'on';
-                    
+
                     if (settingsIncludeCoverImage && settingsCoverImageSource === 'public') {
                       metadata.publicCoverImage = settingsPublicCoverImageName;
                     } else if (settingsIncludeCoverImage && settingsRemoveCoverImage) {
                       metadata.removeCoverImage = true;
                     }
 
-                    updateMutation.mutate({ 
-                      id: activeProject._id, 
+                    updateMutation.mutate({
+                      id: activeProject._id,
                       metadata,
                       coverImage: settingsIncludeCoverImage && settingsCoverImageSource === 'blob' ? settingsCoverImageFile : null
                     });
@@ -1272,10 +1273,10 @@ export default function ProjectManager() {
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <div className="flex items-center gap-3 mb-2">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             id="settingsIncludeCoverImage"
-                            checked={settingsIncludeCoverImage} 
+                            checked={settingsIncludeCoverImage}
                             onChange={e => {
                               setSettingsIncludeCoverImage(e.target.checked);
                               if (!e.target.checked) {
@@ -1283,69 +1284,69 @@ export default function ProjectManager() {
                                 setSettingsCoverImagePreview(null);
                                 setSettingsRemoveCoverImage(false);
                               }
-                            }} 
-                            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" 
+                            }}
+                            className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                           <label htmlFor="settingsIncludeCoverImage" className="text-sm font-bold text-slate-900 cursor-pointer">
                             Update Cover Image
                           </label>
                         </div>
 
-                      {settingsIncludeCoverImage && (
-                        <div className="mt-2 space-y-4">
-                          <div className="flex gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input type="radio" name="settingsCoverImageSource" checked={settingsCoverImageSource === 'blob'} onChange={() => setSettingsCoverImageSource('blob')} className="text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                              <span className="text-sm font-medium text-slate-700">Upload Image (Vercel Blob)</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input type="radio" name="settingsCoverImageSource" checked={settingsCoverImageSource === 'public'} onChange={() => setSettingsCoverImageSource('public')} className="text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                              <span className="text-sm font-medium text-slate-700">Use Public Folder Image</span>
-                            </label>
-                          </div>
+                        {settingsIncludeCoverImage && (
+                          <div className="mt-2 space-y-4">
+                            <div className="flex gap-4">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="settingsCoverImageSource" checked={settingsCoverImageSource === 'blob'} onChange={() => setSettingsCoverImageSource('blob')} className="text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                <span className="text-sm font-medium text-slate-700">Upload Image (Vercel Blob)</span>
+                              </label>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="settingsCoverImageSource" checked={settingsCoverImageSource === 'public'} onChange={() => setSettingsCoverImageSource('public')} className="text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                <span className="text-sm font-medium text-slate-700">Use Public Folder Image</span>
+                              </label>
+                            </div>
 
-                          {settingsCoverImageSource === 'public' ? (
-                            <div className="space-y-2">
-                              <label className="text-sm font-bold text-slate-900">Image Filename</label>
-                              <input type="text" placeholder="e.g. banner1.jpg" value={settingsPublicCoverImageName} onChange={e => setSettingsPublicCoverImageName(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
-                              <p className="text-xs text-slate-500">The image must exist in the public folder.</p>
-                            </div>
-                          ) : (
-                            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:bg-blue-50 transition-colors">
-                              {(settingsCoverImagePreview || (activeProject.coverImage?.url && !settingsRemoveCoverImage) || (activeProject.bannerImage && !settingsRemoveCoverImage)) ? (
-                                <div className="relative w-full">
-                                  <img src={settingsCoverImagePreview || activeProject.coverImage?.url || activeProject.bannerImage} alt="Preview" className="h-48 w-full object-cover rounded-lg" />
-                                  <button type="button" onClick={() => { setSettingsCoverImageFile(null); setSettingsCoverImagePreview(null); setSettingsRemoveCoverImage(true); }} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 shadow-md">
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="space-y-1 text-center">
-                                  <svg className="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  </svg>
-                                  <div className="flex text-sm text-slate-600 justify-center">
-                                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
-                                      <span>Upload a file</span>
-                                      <input type="file" className="sr-only" accept="image/jpeg, image/png, image/webp" onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                          if (file.size > 5 * 1024 * 1024) return showModal('Error', 'File too large. Max 5MB.', 'error');
-                                          setSettingsCoverImageFile(file);
-                                          setSettingsCoverImagePreview(URL.createObjectURL(file));
-                                          setSettingsRemoveCoverImage(false);
-                                        }
-                                      }} />
-                                    </label>
+                            {settingsCoverImageSource === 'public' ? (
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-900">Image Filename</label>
+                                <input type="text" placeholder="e.g. banner1.jpg" value={settingsPublicCoverImageName} onChange={e => setSettingsPublicCoverImageName(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-2" />
+                                <p className="text-xs text-slate-500">The image must exist in the public folder.</p>
+                              </div>
+                            ) : (
+                              <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:bg-blue-50 transition-colors">
+                                {(settingsCoverImagePreview || (activeProject.coverImage?.url && !settingsRemoveCoverImage) || (activeProject.bannerImage && !settingsRemoveCoverImage)) ? (
+                                  <div className="relative w-full">
+                                    <img src={settingsCoverImagePreview || activeProject.coverImage?.url || activeProject.bannerImage} alt="Preview" className="h-48 w-full object-cover rounded-lg" />
+                                    <button type="button" onClick={() => { setSettingsCoverImageFile(null); setSettingsCoverImagePreview(null); setSettingsRemoveCoverImage(true); }} className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 shadow-md">
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
                                   </div>
-                                  <p className="text-xs text-slate-500">PNG, JPG, WEBP up to 5MB</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                                ) : (
+                                  <div className="space-y-1 text-center">
+                                    <svg className="mx-auto h-12 w-12 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    <div className="flex text-sm text-slate-600 justify-center">
+                                      <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
+                                        <span>Upload a file</span>
+                                        <input type="file" className="sr-only" accept="image/jpeg, image/png, image/webp" onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            if (file.size > 5 * 1024 * 1024) return showModal('Error', 'File too large. Max 5MB.', 'error');
+                                            setSettingsCoverImageFile(file);
+                                            setSettingsCoverImagePreview(URL.createObjectURL(file));
+                                            setSettingsRemoveCoverImage(false);
+                                          }
+                                        }} />
+                                      </label>
+                                    </div>
+                                    <p className="text-xs text-slate-500">PNG, JPG, WEBP up to 5MB</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <button type="submit" disabled={updateMutation.isPending} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold">
                       {updateMutation.isPending ? 'Saving...' : 'Save Settings'}
@@ -1366,29 +1367,29 @@ export default function ProjectManager() {
             <div className="p-6 sm:p-8 bg-slate-900 text-white relative">
               <h3 className="text-2xl font-display font-bold">Email Filtered Contributors</h3>
               <p className="text-slate-400 mt-2">Sending to {filteredContributors.length} contributor(s)</p>
-              <button 
+              <button
                 onClick={() => setIsEmailModalOpen(false)}
                 className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6 sm:p-8 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">Subject</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   placeholder="e.g., Update on Egocentric Project"
                   className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">Message Body</label>
-                <textarea 
+                <textarea
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
                   rows={8}
@@ -1398,13 +1399,13 @@ export default function ProjectManager() {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <button 
+                <button
                   onClick={() => setIsEmailModalOpen(false)}
                   className="flex-1 py-3 px-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => handleSendMassEmail(filteredContributors)}
                   disabled={isSendingEmail}
                   className="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
@@ -1423,7 +1424,7 @@ export default function ProjectManager() {
 }
 
 function ChevronRight(props: any) {
-  return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
 }
 
 // Subcomponents for Project Tabs
@@ -1432,6 +1433,7 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
   const queryClient = useQueryClient();
   const [filterContributorType, setFilterContributorType] = useState('All');
   const [filterCountry, setFilterCountry] = useState('All');
+  const [filterDevice, setFilterDevice] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const { data: apps, isLoading } = useQuery({
     queryKey: ['pm-applications', projectId],
@@ -1493,6 +1495,9 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
     if (isEgocentric && filterCountry !== 'All' && a.contributorId?.country !== filterCountry) {
       return false;
     }
+    if (isEgocentric && filterDevice && !a.formData?.deviceName?.toLowerCase().includes(filterDevice.toLowerCase())) {
+      return false;
+    }
     if (filterStatus !== 'All' && a.status !== filterStatus) {
       return false;
     }
@@ -1501,6 +1506,10 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
 
   const uniqueApplicantCountries = Array.from(new Set(
     (apps || []).map((a: any) => a.contributorId?.country).filter(Boolean)
+  )) as string[];
+
+  const uniqueDevices = Array.from(new Set(
+    (apps || []).map((a: any) => a.formData?.deviceName).filter(Boolean)
   )) as string[];
 
   return (
@@ -1540,6 +1549,21 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
               <option value="vendor">Vendor</option>
               <option value="connections">Connections</option>
             </select>
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                list="device-suggestions"
+                placeholder="Search device..."
+                value={filterDevice}
+                onChange={e => setFilterDevice(e.target.value)}
+                className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
+              />
+              <datalist id="device-suggestions">
+                {uniqueDevices.map(device => (
+                  <option key={device} value={device}>{device}</option>
+                ))}
+              </datalist>
+            </div>
           </>
         )}
       </div>
@@ -1582,7 +1606,7 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
         </tbody>
       </table>
       <Modal {...modalConfig} />
-      
+
       {/* Profile Details Modal */}
       {selectedApp && (
         <Modal
@@ -1618,7 +1642,7 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
   )
 }
 
-function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectId: string, token: string, deadline?: string, onAction?: (action: 'payment'|'message', id: string) => void }) {
+function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectId: string, token: string, deadline?: string, onAction?: (action: 'payment' | 'message', id: string) => void }) {
   const queryClient = useQueryClient();
   const [modalConfig, setModalConfig] = useState<ModalProps>({
     isOpen: false,
@@ -1684,7 +1708,7 @@ function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectI
                 </div>
               )}
             </div>
-            
+
             <div className="lg:w-72 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6 flex flex-col">
               <div className="mb-4">
                 <span className="text-sm font-bold text-slate-900 block mb-1">Status</span>
@@ -1692,9 +1716,9 @@ function ProjectSubmissions({ projectId, token, deadline, onAction }: { projectI
                   {sub.status}
                 </span>
               </div>
-              
+
               <div className="space-y-2 mt-auto">
-                <select 
+                <select
                   className="w-full bg-blue-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold"
                   onChange={(e) => {
                     const status = e.target.value;
@@ -1763,7 +1787,7 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
   const [amount, setAmount] = useState('');
   const [contributorId, setContributorId] = useState(targetContributorId || '');
   const [status, setStatus] = useState('Pending');
-  
+
   const [modalConfig, setModalConfig] = useState<ModalProps>({
     isOpen: false,
     title: '',
@@ -1771,7 +1795,7 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
     onClose: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
   });
   const [pendingPayment, setPendingPayment] = useState<{ id: string, status: string } | null>(null);
-  
+
   const maxAmount = payRate ? parseInt(payRate.replace(/\D/g, '')) || Infinity : Infinity;
   const isAmountValid = amount === '' || Number(amount) <= maxAmount;
 
@@ -1825,7 +1849,7 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
           <button onClick={() => createPayment.mutate()} disabled={!contributorId || !amount || !isAmountValid || createPayment.isPending} className="w-full bg-slate-900 text-white font-bold py-2 rounded-xl hover:bg-slate-800 disabled:opacity-50 transition-opacity">Record Payment</button>
         </div>
       </div>
-      
+
       <div className="flex-1 p-6 overflow-y-auto">
         <h4 className="font-bold text-slate-900 mb-4">Payment Records</h4>
         <table className="w-full text-left text-sm">
@@ -1844,8 +1868,8 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
                 <td className="py-3 font-mono text-xs">{p.contributorId.upiId || 'Not set'}</td>
                 <td className="py-3 font-bold text-slate-900">₹{p.amount}</td>
                 <td className="py-3">
-                  <select 
-                    value={pendingPayment?.id === p._id ? pendingPayment.status : p.status} 
+                  <select
+                    value={pendingPayment?.id === p._id ? pendingPayment.status : p.status}
                     onChange={e => {
                       const newStatus = e.target.value;
                       setPendingPayment({ id: p._id, status: newStatus });
@@ -1887,9 +1911,12 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
 
 function ProjectMessages({ projectId, projectName, token, currentUserId, targetContributorId }: { projectId: string, projectName: string, token: string, currentUserId: string, targetContributorId?: string | null }) {
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  
-  const { data: apps } = useQuery({ 
-    queryKey: ['pm-applications', projectId], 
+  const [filterUnread, setFilterUnread] = useState(false);
+  const [filterOngoing, setFilterOngoing] = useState(false);
+  const [filterType, setFilterType] = useState('All');
+
+  const { data: apps } = useQuery({
+    queryKey: ['pm-applications', projectId],
     queryFn: async () => (await fetch(`/api/applications/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.applications || []),
     staleTime: 60 * 1000
   });
@@ -1901,6 +1928,29 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
     staleTime: 60 * 1000
   });
 
+  const { data: projectMessages } = useQuery({
+    queryKey: ['pm-project-messages', projectId],
+    queryFn: async () => {
+      const res = await fetch(`/api/project-messages/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      return data.messages || [];
+    },
+    staleTime: 60 * 1000
+  });
+
+  const ongoingUserIds = useMemo(() => {
+    if (!projectMessages) return [];
+    const ids = new Set<string>();
+    projectMessages.forEach((m: any) => {
+      if (m.senderId && m.senderId._id !== currentUserId) ids.add(m.senderId._id);
+      if (m.receiverId && m.receiverId._id !== currentUserId) ids.add(m.receiverId._id);
+    });
+    return Array.from(ids);
+  }, [projectMessages, currentUserId]);
+
+  const ongoingCount = ongoingUserIds.length;
+  const unreadCount = unreadData?.count || 0;
+
   useEffect(() => {
     if (targetContributorId && apps) {
       const targetApp = apps.find((a: any) => a.contributorId && a.contributorId._id === targetContributorId);
@@ -1911,45 +1961,171 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
   }, [targetContributorId, apps]);
 
   if (selectedUser) {
-    return <ProjectChat projectId={projectId} projectName={projectName} token={token} currentUserId={currentUserId} receiverId={selectedUser._id} receiverName={selectedUser.fullName} receiverEmail={selectedUser.email} onBack={() => setSelectedUser(null)} />
+    const selectedApp = apps?.find((a: any) => a.contributorId?._id === selectedUser._id);
+    return (
+      <div className="flex h-full flex-col md:flex-row">
+        <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 overflow-y-auto bg-slate-50 p-6 h-[40vh] md:h-full">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-bold text-slate-900">Profile Details</h3>
+            <button onClick={() => setSelectedUser(null)} className="text-sm font-bold text-blue-600 hover:underline">Close</button>
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl mb-4">
+                {selectedUser.fullName?.charAt(0).toUpperCase()}
+              </div>
+              <h4 className="font-bold text-xl text-slate-900">{selectedUser.fullName}</h4>
+              <p className="text-slate-500">{selectedUser.email}</p>
+              <div className="mt-2 flex gap-2">
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Trust Score: {selectedUser.trustScore || 0}</span>
+                {selectedApp?.formData?.contributorType && (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full capitalize">{selectedApp.formData.contributorType}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-slate-400 font-medium">Country</p>
+                <p className="font-bold text-slate-900">{selectedUser.country || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-medium">Phone</p>
+                <p className="font-bold text-slate-900">{selectedUser.phone || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-medium">Language</p>
+                <p className="font-bold text-slate-900">{selectedUser.nativeLanguage || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-medium">City</p>
+                <p className="font-bold text-slate-900">{selectedUser.city || 'N/A'}</p>
+              </div>
+            </div>
+
+            {selectedApp?.formData && Object.keys(selectedApp.formData).length > 0 && (
+              <div className="pt-4 border-t border-slate-200">
+                <h5 className="font-bold text-slate-900 mb-3 text-sm">Application Data</h5>
+                <div className="space-y-3">
+                  {Object.entries(selectedApp.formData).map(([key, val]) => (
+                    <div key={key} className="text-sm">
+                      <p className="text-slate-400 font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                      <p className="font-medium text-slate-900">{String(val)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="w-full md:w-2/3 h-[60vh] md:h-full">
+          <ProjectChat 
+            projectId={projectId} 
+            projectName={projectName} 
+            token={token} 
+            currentUserId={currentUserId} 
+            receiverId={selectedUser._id} 
+            receiverName={selectedUser.fullName} 
+            receiverEmail={selectedUser.email} 
+            onBack={() => setSelectedUser(null)} 
+          />
+        </div>
+      </div>
+    );
   }
 
+  const filteredApps = apps?.filter((a: any) => {
+    if (!a.contributorId) return false;
+    const hasUnread = unreadData?.unreadSenderIds?.includes(a.contributorId._id);
+    const hasOngoing = ongoingUserIds.includes(a.contributorId._id);
+    
+    if (filterUnread && !hasUnread) return false;
+    if (filterOngoing && !hasOngoing) return false;
+    if (filterType !== 'All' && a.formData?.contributorType !== filterType) return false;
+    
+    return true;
+  });
+
   return (
-    <div className="p-6 h-full overflow-y-auto">
-      <h4 className="font-bold text-slate-900 mb-4">Select a Contributor to Message</h4>
-      <div className="space-y-2">
-        {apps?.filter((a: any) => a.contributorId).map((app: any) => {
+    <div className="p-4 h-full flex flex-col">
+      <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200 shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex gap-4">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Unread</p>
+              <p className="text-xl font-black text-blue-600">{unreadCount}</p>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ongoing</p>
+              <p className="text-xl font-black text-slate-900">{ongoingCount}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-700 bg-white px-2 py-1.5 border border-slate-200 rounded-md cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" checked={filterUnread} onChange={e => setFilterUnread(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5" />
+              New Messages
+            </label>
+            <label className="flex items-center gap-2 text-xs font-medium text-slate-700 bg-white px-2 py-1.5 border border-slate-200 rounded-md cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" checked={filterOngoing} onChange={e => setFilterOngoing(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5" />
+              Ongoing
+            </label>
+            <select
+              value={filterType}
+              onChange={e => setFilterType(e.target.value)}
+              className="bg-white border border-slate-200 rounded-md px-2 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="All">All Types</option>
+              <option value="individual">Individual</option>
+              <option value="vendor">Vendor</option>
+              <option value="connections">Connections</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-1">
+        {filteredApps?.map((app: any) => {
           const hasUnread = unreadData?.unreadSenderIds?.includes(app.contributorId._id);
           return (
-            <button 
+            <button
               key={app.contributorId._id}
               onClick={() => setSelectedUser(app.contributorId)}
-              className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-colors"
+              className="w-full flex items-center justify-between py-2 px-3 bg-white border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group"
             >
               <div className="text-left flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-lg">
+                <div className="relative shrink-0">
+                  <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-xs group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
                     {app.contributorId.fullName.charAt(0).toUpperCase()}
                   </div>
                   {hasUnread && (
-                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border border-white rounded-full animate-pulse"></span>
                   )}
                 </div>
-                <div>
-                  <p className="font-bold text-slate-900 flex items-center gap-2">
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-slate-900 truncate">
                     {app.contributorId.fullName}
                   </p>
-                  <p className="text-sm text-slate-500">{app.contributorId.email}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">{app.contributorId.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {hasUnread && <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-full">New Message</span>}
-                <MessageSquare className={`w-5 h-5 ${hasUnread ? 'text-blue-500' : 'text-slate-400'}`} />
+              <div className="flex items-center gap-2 shrink-0">
+                {app.formData?.contributorType && (
+                  <span className="hidden sm:inline-block px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded capitalize">
+                    {app.formData.contributorType}
+                  </span>
+                )}
+                {hasUnread && <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">New</span>}
+                <MessageSquare className={`w-4 h-4 ${hasUnread ? 'text-blue-500' : 'text-slate-300 group-hover:text-blue-500 transition-colors'}`} />
               </div>
             </button>
           );
         })}
-        {apps?.length === 0 && <p className="text-slate-500 text-center py-8">No applicants found for this project.</p>}
+        {filteredApps?.length === 0 && (
+          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+            No applicants match your filters.
+          </div>
+        )}
       </div>
     </div>
   );

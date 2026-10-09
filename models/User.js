@@ -15,6 +15,8 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'admin', 'project_manager'], default: 'user', index: true },
   isVerified: { type: Boolean, default: false },
   upiId: { type: String },
+  cryptoNetwork: { type: String },
+  cryptoWalletAddress: { type: String },
   referralCode: { type: String, unique: true, sparse: true, index: true },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trustScore: { type: Number, default: 0 },

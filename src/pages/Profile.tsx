@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation, Link } from 'react-router-dom';
-import { Briefcase, CreditCard, Users, CheckCircle, Clock, Search, ChevronRight, Share2, Copy, MessageSquare, Bell, CheckCircle2 } from 'lucide-react';
+import { Briefcase, CreditCard, Users, CheckCircle, Clock, Search, ChevronRight, Share2, Copy, MessageSquare, Bell, CheckCircle2, Calendar } from 'lucide-react';
 import SEO from '../components/SEO';
 import ProjectChat from '../components/ProjectChat';
 import FormattedText from '../components/FormattedText';
@@ -24,7 +24,7 @@ const getDaysAgo = (dateString?: string) => {
 
 const DiscordIcon = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 127.14 96.36" fill="currentColor">
-    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91.08,65.69,84.69,65.69Z"/>
+    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91.08,65.69,84.69,65.69Z" />
   </svg>
 );
 
@@ -33,7 +33,7 @@ const renderFormattedText = (text: string) => {
   // Match bold (**text**), italic (*text*), or URLs
   const regex = /(\*\*.*?\*\*|\*.*?\*|https?:\/\/[^\s]+)/g;
   const parts = text.split(regex);
-  
+
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
@@ -179,7 +179,7 @@ export default function Profile() {
 
   // Form State
   const [upiId, setUpiId] = useState('');
-  
+
   const [profileFormData, setProfileFormData] = useState<any>({});
   const [profileOtp, setProfileOtp] = useState('');
   const [isProfileOtpSent, setIsProfileOtpSent] = useState(false);
@@ -220,7 +220,9 @@ export default function Profile() {
         phone: parsedPhone,
         experience: user.experience || '',
         howFoundUs: user.howFoundUs || '',
-        upiId: user.upiId || ''
+        upiId: user.upiId || '',
+        cryptoNetwork: user.cryptoNetwork || '',
+        cryptoWalletAddress: user.cryptoWalletAddress || ''
       });
     }
   }, [user]);
@@ -381,21 +383,54 @@ export default function Profile() {
 
   const handleProfileSaveInitiate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!profileFormData.country) {
       showModal('Error', 'Please select a country', 'error');
       return;
     }
-    
+
     const selectedDialCode = COUNTRIES.find(c => c.code === profileFormData.country)?.dial_code || '';
-    const fullPhone = `${selectedDialCode} ${profileFormData.phone.trim()}`;
-    const phoneRegex = /^\+\d{1,4}[\s-]?(?:\d[\s-]?){9}\d$/;
-    if (!phoneRegex.test(fullPhone)) {
+    const cleanPhone = profileFormData.phone.replace(/\D/g, '');
+    
+    if (cleanPhone.length !== 10) {
       showModal('Error', 'Phone number is invalid. Please enter exactly 10 digits.', 'error');
       return;
     }
+    
+    const fullPhone = `${selectedDialCode} ${cleanPhone}`;
 
-    setProfileFormDataToSubmit({ ...profileFormData, phone: fullPhone });
+    const personalFields = ['fullName', 'city', 'country', 'nativeLanguage', 'additionalLanguage', 'experience', 'howFoundUs'];
+    const personalDataToSubmit: any = { phone: fullPhone };
+    personalFields.forEach(f => { personalDataToSubmit[f] = profileFormData[f]; });
+
+    setProfileFormDataToSubmit(personalDataToSubmit);
+    setIsSendingProfileOtp(true);
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user?.email, type: 'profile-update' })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to send OTP');
+      setIsProfileOtpSent(true);
+    } catch (err: any) {
+      showModal('Error', err.message, 'error');
+    } finally {
+      setIsSendingProfileOtp(false);
+    }
+  };
+
+  const handlePaymentSaveInitiate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const paymentDataToSubmit = {
+      upiId: profileFormData.upiId || '',
+      cryptoNetwork: profileFormData.cryptoNetwork || '',
+      cryptoWalletAddress: profileFormData.cryptoWalletAddress || ''
+    };
+
+    setProfileFormDataToSubmit(paymentDataToSubmit);
     setIsSendingProfileOtp(true);
     try {
       const res = await fetch('/api/auth/send-otp', {
@@ -471,7 +506,7 @@ export default function Profile() {
                 <input type="password" required placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
               </div>
               <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors">Login</button>
-              
+
               <div className="text-center pt-4 border-t border-slate-100">
                 <span className="text-sm text-slate-600">Don't have an account? </span>
                 <Link to="/signup" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">Create an Account</Link>
@@ -484,7 +519,7 @@ export default function Profile() {
             <form onSubmit={otpSent ? handleResetPassword : handleSendResetOtp} className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
               {resetError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center font-medium">{resetError}</div>}
               {resetSuccess && <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm text-center font-medium">{resetSuccess}</div>}
-              
+
               {!otpSent ? (
                 <>
                   <div className="space-y-2">
@@ -510,7 +545,7 @@ export default function Profile() {
                   </button>
                 </>
               )}
-              
+
               <div className="text-center pt-4 border-t border-slate-100">
                 <button type="button" onClick={() => { setViewState('login'); setOtpSent(false); setResetError(''); setResetSuccess(''); }} className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">Back to Login</button>
               </div>
@@ -531,7 +566,7 @@ export default function Profile() {
       .filter((s: any) => s?.status === 'Completed')
       .map((s: any) => s?.projectId?._id || s?.projectId)
   );
-  
+
   const activeProjectsCount = Math.max(0, (myApplications?.length || 0) - completedProjectIds.size);
   const completedProjectsCount = completedProjectIds.size;
 
@@ -566,11 +601,11 @@ export default function Profile() {
         btnColor = 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/30';
       }
       return (
-        <button onClick={() => { 
+        <button onClick={() => {
           if (project.isEgocentric && btnText === 'Recording Instructions') {
             showModal(
-              'To start recording and earning, you will need a unique access code.', 
-              'Please join the official Project Telegram Group to receive your instructions and get your access code directly from the Project Manager.', 
+              'To start recording and earning, you will need a unique access code.',
+              'Please join the official Project Telegram Group to receive your instructions and get your access code directly from the Project Manager.',
               'info',
               (
                 <div className="flex flex-col sm:flex-row gap-4 mt-6">
@@ -579,12 +614,12 @@ export default function Profile() {
                       Join Telegram Group
                     </a>
                   )}
-                  <button onClick={() => { 
+                  <button onClick={() => {
                     const app = myApplications?.find((a: any) => a?.projectId?._id === project._id);
                     setSelectedChatProject(app || null);
-                    setModalConfig(prev => ({ ...prev, isOpen: false })); 
-                    setActiveTab('messages'); 
-                    window.location.hash = 'messages'; 
+                    setModalConfig(prev => ({ ...prev, isOpen: false }));
+                    setActiveTab('messages');
+                    window.location.hash = 'messages';
                   }} className="flex-1 px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
                     Message Project Manager
                   </button>
@@ -592,7 +627,7 @@ export default function Profile() {
               )
             );
           } else {
-            setActiveTab('my_projects'); window.location.hash = 'my_projects'; 
+            setActiveTab('my_projects'); window.location.hash = 'my_projects';
           }
         }} className={`px-6 py-3 text-white font-bold rounded-xl transition-colors w-full sm:w-auto shadow-md ${btnColor}`}>
           {btnText}
@@ -616,11 +651,15 @@ export default function Profile() {
     }
   };
 
+  const currentDay = new Date().getDate();
+  const isPaymentLocked = currentDay >= 1 && currentDay <= 7;
+  const paymentLockRemainingDays = 8 - currentDay;
+
   return (
-    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-8 pb-12">
       <SEO title="Profile | Vision Capture" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
@@ -647,9 +686,9 @@ export default function Profile() {
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => { 
-                  setActiveTab(tab.id as any); 
-                  window.location.hash = tab.id; 
+                onClick={() => {
+                  setActiveTab(tab.id as any);
+                  window.location.hash = tab.id;
                   if (tab.id === 'messages') setSelectedChatProject(null);
                 }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-left whitespace-nowrap relative ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white text-slate-600 hover:bg-slate-100'}`}
@@ -698,7 +737,21 @@ export default function Profile() {
                   </div>
                 </div>
 
-                <div className="pt-8">
+                {/* Payment Schedule Banner */}
+                <div className="bg-sky-50 border border-sky-200 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-4 shadow-sm relative overflow-hidden mt-6 mb-2">
+                  <div className="bg-sky-100 p-3 rounded-xl shrink-0">
+                    <Calendar className="w-6 h-6 text-sky-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 mb-1">Egocentric Video Payment Schedule</h3>
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                      Work submitted <strong className="text-slate-900 font-bold">1st - 15th</strong> is processed and paid between the <strong className="text-slate-900 font-bold">16th - 22nd</strong>. <br className="hidden md:block"/>
+                      Work submitted <strong className="text-slate-900 font-bold">16th - 31st</strong> is processed and paid between the <strong className="text-slate-900 font-bold">1st - 7th</strong> of the following month.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6">
                   <h2 className="text-2xl font-bold text-slate-900 mb-4">Available Projects</h2>
 
                   {/* Hardcoded Egocentric Project */}
@@ -707,14 +760,14 @@ export default function Profile() {
                     <div className="absolute inset-0 z-10 pointer-events-none opacity-50 mix-blend-overlay overflow-hidden rounded-3xl">
                       <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-80 animate-[shine_4s_ease-in-out_infinite]" />
                     </div>
-                    
+
                     <div className="w-full sm:w-56 h-40 sm:h-auto rounded-2xl overflow-hidden shrink-0 relative z-20">
                       <img src="/ego.webp" alt="Egocentric Data" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" />
                       <div className="absolute top-3 left-3">
                         <span className="px-3 py-1 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg shadow-lg border border-blue-400/30">Featured</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 flex flex-col justify-center relative z-20 py-2">
                       <div className="flex items-start justify-between mb-3 gap-4">
                         <h3 className="text-2xl font-display font-bold text-white">Egocentric Video Contributors ( Remote)</h3>
@@ -726,7 +779,7 @@ export default function Profile() {
                         <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> No experience required</span>
                       </div>
                     </div>
-                    
+
                     <div className="shrink-0 flex items-center justify-center sm:items-start pt-2 relative z-20">
                       {(() => {
                         const egoProjectObj = availableProjects?.find((p: any) => p.isEgocentric);
@@ -829,14 +882,14 @@ export default function Profile() {
                   <div className="absolute inset-0 z-10 pointer-events-none opacity-50 mix-blend-overlay overflow-hidden rounded-3xl">
                     <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-80 animate-[shine_4s_ease-in-out_infinite]" />
                   </div>
-                  
+
                   <div className="w-full sm:w-56 h-40 sm:h-auto rounded-2xl overflow-hidden shrink-0 relative z-20">
                     <img src="/ego.webp" alt="Egocentric Data" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" />
                     <div className="absolute top-3 left-3">
                       <span className="px-3 py-1 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg shadow-lg border border-blue-400/30">Featured</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 flex flex-col justify-center relative z-20 py-2">
                     <div className="flex items-start justify-between mb-3 gap-4">
                       <h3 className="text-2xl font-display font-bold text-white">Egocentric Video Contributors ( Remote)</h3>
@@ -848,7 +901,7 @@ export default function Profile() {
                       <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> No experience required</span>
                     </div>
                   </div>
-                  
+
                   <div className="shrink-0 flex items-center justify-center sm:items-start pt-2 relative z-20">
                     {(() => {
                       const egoProjectObj = availableProjects?.find((p: any) => p.isEgocentric);
@@ -972,30 +1025,30 @@ export default function Profile() {
                               >
                                 {expandedAvailableProject === `inst_${app._id}` ? 'Hide Project Instructions' : 'View Project Instructions'}
                               </button>
-                                {expandedAvailableProject === `inst_${app._id}` && (
-                                  <div className="mt-4 p-4 bg-white border border-slate-200 rounded-xl">
-                                    <h4 className="font-bold text-slate-900 mb-2">Project Guidelines</h4>
-                                    <p className="text-slate-600 whitespace-pre-wrap text-sm">{renderFormattedText(app.projectId.projectInstructions || app.projectId.projectDetails)}</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            
-                            {app.projectId.telegramLink && (
-                              <div className="mb-6">
-                                <a href={app.projectId.telegramLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors shadow-sm">
-                                  <MessageSquare className="w-4 h-4" /> Live Support & Instructions
-                                </a>
-                              </div>
-                            )}
+                              {expandedAvailableProject === `inst_${app._id}` && (
+                                <div className="mt-4 p-4 bg-white border border-slate-200 rounded-xl">
+                                  <h4 className="font-bold text-slate-900 mb-2">Project Guidelines</h4>
+                                  <p className="text-slate-600 whitespace-pre-wrap text-sm">{renderFormattedText(app.projectId.projectInstructions || app.projectId.projectDetails)}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {app.projectId.telegramLink && (
+                            <div className="mb-6">
+                              <a href={app.projectId.telegramLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors shadow-sm">
+                                <MessageSquare className="w-4 h-4" /> Live Support & Instructions
+                              </a>
+                            </div>
+                          )}
 
                           {app.status === 'Approved' ? (
                             <>
                               {app.projectId.isEgocentric ? (
                                 <div className="mt-4 pt-4 border-t border-slate-100">
                                   <button onClick={() => showModal(
-                                    'To start recording and earning, you will need a unique access code.', 
-                                    'Please join the official Project Telegram Group to receive your instructions and get your access code directly from the Project Manager.', 
+                                    'To start recording and earning, you will need a unique access code.',
+                                    'Please join the official Project Telegram Group to receive your instructions and get your access code directly from the Project Manager.',
                                     'info',
                                     (
                                       <div className="flex flex-col sm:flex-row gap-4 mt-6">
@@ -1004,11 +1057,11 @@ export default function Profile() {
                                             Join Telegram Group
                                           </a>
                                         )}
-                                        <button onClick={() => { 
+                                        <button onClick={() => {
                                           setSelectedChatProject(app);
-                                          setModalConfig(prev => ({ ...prev, isOpen: false })); 
-                                          setActiveTab('messages'); 
-                                          window.location.hash = 'messages'; 
+                                          setModalConfig(prev => ({ ...prev, isOpen: false }));
+                                          setActiveTab('messages');
+                                          window.location.hash = 'messages';
                                         }} className="flex-1 px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
                                           Message Project Manager
                                         </button>
@@ -1154,7 +1207,7 @@ export default function Profile() {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Refer & Earn</h2>
                 <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
-                    <h3 className="text-xl font-bold text-slate-600 bg-blue-50 px-6 py-3 rounded-xl inline-block">Coming Soon</h3>
+                  <h3 className="text-xl font-bold text-slate-600 bg-blue-50 px-6 py-3 rounded-xl inline-block">Coming Soon</h3>
                 </div>
               </div>
             )}
@@ -1169,13 +1222,13 @@ export default function Profile() {
                   ) : (
                     <div className="space-y-4">
                       {myNotifications?.map((n: any) => (
-                        <div 
-                          key={n._id} 
+                        <div
+                          key={n._id}
                           onClick={() => !n.isRead && markNotificationAsRead(n._id)}
                           className={`p-4 rounded-xl border transition-colors ${n.isRead ? 'bg-blue-50 border-slate-100 opacity-70' : 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'}`}
                         >
                           <div className="flex justify-between items-start gap-4">
-                            <p className="text-slate-800 flex-1">{n.message}</p>
+                            <p className="text-slate-800 flex-1">{renderFormattedText(n.message)}</p>
                             {!n.isRead && <span className="shrink-0 text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded-full">New</span>}
                           </div>
                           <p className="text-xs text-slate-500 mt-2">{new Date(n.createdAt).toLocaleString()}</p>
@@ -1191,74 +1244,117 @@ export default function Profile() {
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Profile Settings</h2>
-                <form onSubmit={handleProfileSaveInitiate} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-xl space-y-4 mb-8">
-                  <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Personal Details</h3>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-900">Email</label>
-                    <input type="email" readOnly value={user?.email || ''} className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-slate-500" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-900">Full Name</label>
-                      <input type="text" required value={profileFormData.fullName || ''} onChange={e => setProfileFormData({...profileFormData, fullName: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-900">Country</label>
-                      <CountrySelect 
-                        value={profileFormData.country || ''}
-                        onChange={(val) => setProfileFormData({...profileFormData, country: val})}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-900">Phone</label>
-                      <div className="flex bg-blue-50 border border-slate-200 rounded-xl overflow-hidden focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors">
-                        <div className="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-600 font-medium flex items-center shrink-0">
-                          {COUNTRIES.find(c => c.code === profileFormData.country)?.dial_code || '+'}
-                        </div>
-                        <input 
-                          type="tel" 
-                          required 
-                          value={profileFormData.phone || ''} 
-                          onChange={e => setProfileFormData({...profileFormData, phone: e.target.value})} 
-                          placeholder="234 567 8900" 
-                          className="w-full px-4 py-3 bg-transparent outline-none" 
-                        />
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start w-full">
+                  {/* Left Column: Personal Details & Password */}
+                  <div className="space-y-8 w-full">
+                    <form onSubmit={handleProfileSaveInitiate} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Personal Details</h3>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-900">Email</label>
+                        <input type="email" readOnly value={user?.email || ''} className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-slate-500" />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-slate-900">City</label>
-                      <input type="text" required value={profileFormData.city || ''} onChange={e => setProfileFormData({...profileFormData, city: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-900">Native Language</label>
-                    <input type="text" required value={profileFormData.nativeLanguage || ''} onChange={e => setProfileFormData({...profileFormData, nativeLanguage: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-900">UPI ID for Payments</label>
-                    <input type="text" required value={profileFormData.upiId || ''} onChange={e => setProfileFormData({...profileFormData, upiId: e.target.value})} placeholder="yourname@upi" className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
-                  </div>
-                  <button type="submit" disabled={isSendingProfileOtp} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors w-full sm:w-auto">
-                    {isSendingProfileOtp ? 'Sending Code...' : 'Save Profile Details'}
-                  </button>
-                </form>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-slate-900">Full Name</label>
+                          <input type="text" required value={profileFormData.fullName || ''} onChange={e => setProfileFormData({ ...profileFormData, fullName: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-slate-900">Country</label>
+                          <CountrySelect
+                            value={profileFormData.country || ''}
+                            onChange={(val) => setProfileFormData({ ...profileFormData, country: val })}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-slate-900">Phone</label>
+                          <div className="flex bg-blue-50 border border-slate-200 rounded-xl overflow-hidden focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400 transition-colors">
+                            <div className="px-4 py-3 bg-slate-100 border-r border-slate-200 text-slate-600 font-medium flex items-center shrink-0">
+                              {COUNTRIES.find(c => c.code === profileFormData.country)?.dial_code || '+'}
+                            </div>
+                            <input
+                              type="tel"
+                              required
+                              value={profileFormData.phone || ''}
+                              onChange={e => setProfileFormData({ ...profileFormData, phone: e.target.value })}
+                              placeholder="234 567 8900"
+                              className="w-full px-4 py-3 bg-transparent outline-none"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-slate-900">City</label>
+                          <input type="text" required value={profileFormData.city || ''} onChange={e => setProfileFormData({ ...profileFormData, city: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-900">Native Language</label>
+                        <input type="text" required value={profileFormData.nativeLanguage || ''} onChange={e => setProfileFormData({ ...profileFormData, nativeLanguage: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+                      </div>
+                      <button type="submit" disabled={isSendingProfileOtp} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors w-full sm:w-auto">
+                        {isSendingProfileOtp ? 'Sending Code...' : 'Save Profile Details'}
+                      </button>
+                    </form>
 
-                <form onSubmit={(e) => { e.preventDefault(); changePasswordMutation.mutate(passwordForm); }} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-xl space-y-4">
-                  <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Change Password</h3>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-900">Old Password</label>
-                    <input type="password" required value={passwordForm.oldPassword} onChange={e => setPasswordForm({...passwordForm, oldPassword: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+                    <form onSubmit={(e) => { e.preventDefault(); changePasswordMutation.mutate(passwordForm); }} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Change Password</h3>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-900">Old Password</label>
+                        <input type="password" required value={passwordForm.oldPassword} onChange={e => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-900">New Password</label>
+                        <input type="password" required minLength={6} value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+                      </div>
+                      <button type="submit" disabled={changePasswordMutation.isPending} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors w-full sm:w-auto">
+                        {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
+                      </button>
+                    </form>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-900">New Password</label>
-                    <input type="password" required minLength={6} value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3" />
+
+                  {/* Right Column: Payment Details */}
+                  <div className="w-full">
+                    <form onSubmit={handlePaymentSaveInitiate} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                      <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Payment Details</h3>
+                      
+                      {isPaymentLocked && (
+                        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm mb-4">
+                          <strong className="block mb-1">Section Locked (1st - 7th of Month)</strong> 
+                          You can't edit payment details for another {paymentLockRemainingDays} {paymentLockRemainingDays === 1 ? 'day' : 'days'}, as payments for previous months are currently in progress.
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-900">UPI ID for Payments</label>
+                        <input type="text" value={profileFormData.upiId || ''} onChange={e => setProfileFormData({ ...profileFormData, upiId: e.target.value })} placeholder="yourname@upi" disabled={isPaymentLocked} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 disabled:opacity-50 disabled:cursor-not-allowed" />
+                      </div>
+
+                      <div className="space-y-4 pt-2">
+                        <h4 className="font-bold text-slate-800 text-sm">Crypto Wallet</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-900">Network</label>
+                            <select value={profileFormData.cryptoNetwork || ''} onChange={e => setProfileFormData({ ...profileFormData, cryptoNetwork: e.target.value })} disabled={isPaymentLocked} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                              <option value="">Select Network...</option>
+                              <option value="USDC (BSC)">USDC (BSC)</option>
+                              <option value="USDC (ERC20)">USDC (ERC20)</option>
+                              <option value="USDC (Arbitrum)">USDC (Arbitrum)</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-900">Wallet Address</label>
+                            <input type="text" value={profileFormData.cryptoWalletAddress || ''} onChange={e => setProfileFormData({ ...profileFormData, cryptoWalletAddress: e.target.value })} placeholder="0x..." disabled={isPaymentLocked} className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 disabled:opacity-50 disabled:cursor-not-allowed" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <button type="submit" disabled={isSendingProfileOtp || isPaymentLocked} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isSendingProfileOtp ? 'Sending Code...' : 'Save Payment Details'}
+                      </button>
+                    </form>
                   </div>
-                  <button type="submit" disabled={changePasswordMutation.isPending} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors w-full sm:w-auto">
-                    {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
-                  </button>
-                </form>
+                </div>
               </div>
             )}
 
@@ -1278,7 +1374,7 @@ export default function Profile() {
                 <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto flex-1 bg-blue-50/50">
               {/* STEP 1: Terms */}
               {(!consentProject.isEgocentric || egoAppStep === 1) && (
@@ -1286,12 +1382,12 @@ export default function Profile() {
                   <FormattedText text={consentProject.termsAndConditions} />
                 </div>
               )}
-              
+
               {/* STEP 2: Contributor Type (Egocentric Only) */}
               {consentProject.isEgocentric && egoAppStep === 2 && (
                 <div className="space-y-4">
                   <p className="text-slate-600 mb-4">Please select the type of contributor you are applying as:</p>
-                  
+
                   <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${egoContributorType === 'individual' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                     <div className="flex items-center gap-4">
                       <input type="radio" name="contributorType" value="individual" checked={egoContributorType === 'individual'} onChange={() => setEgoContributorType('individual')} className="w-5 h-5 text-blue-600" />
@@ -1301,7 +1397,7 @@ export default function Profile() {
                       </div>
                     </div>
                   </label>
-                  
+
                   <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${egoContributorType === 'vendor' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                     <div className="flex items-center gap-4">
                       <input type="radio" name="contributorType" value="vendor" checked={egoContributorType === 'vendor'} onChange={() => setEgoContributorType('vendor')} className="w-5 h-5 text-blue-600" />
@@ -1311,7 +1407,7 @@ export default function Profile() {
                       </div>
                     </div>
                   </label>
-                  
+
                   <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${egoContributorType === 'connections' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                     <div className="flex items-center gap-4">
                       <input type="radio" name="contributorType" value="connections" checked={egoContributorType === 'connections'} onChange={() => setEgoContributorType('connections')} className="w-5 h-5 text-blue-600" />
@@ -1323,19 +1419,27 @@ export default function Profile() {
                   </label>
                 </div>
               )}
-              
+
               {/* STEP 3: Dynamic Form (Egocentric Only) */}
               {consentProject.isEgocentric && egoAppStep === 3 && (
                 <div className="space-y-6">
                   {egoContributorType === 'individual' && (
                     <>
                       <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Device</label>
+                        <select required onChange={(e) => setEgoFormData({ ...egoFormData, deviceType: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl">
+                          <option value="">Select...</option>
+                          <option value="iPhone">iPhone</option>
+                          <option value="Android">Android</option>
+                        </select>
+                      </div>
+                      <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Device Name and Model</label>
-                        <input required type="text" onChange={(e) => setEgoFormData({...egoFormData, deviceName: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="text" placeholder="e.g iPhone 17" onChange={(e) => setEgoFormData({ ...egoFormData, deviceName: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Do you already have a head strap?</label>
-                        <select required onChange={(e) => setEgoFormData({...egoFormData, hasHeadStrap: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl">
+                        <select required onChange={(e) => setEgoFormData({ ...egoFormData, hasHeadStrap: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl">
                           <option value="">Select...</option>
                           <option value="Yes">Yes</option>
                           <option value="No">No</option>
@@ -1343,7 +1447,7 @@ export default function Profile() {
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">How many hours can you record weekly?</label>
-                        <input required type="number" onChange={(e) => setEgoFormData({...egoFormData, hoursWeekly: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="number" onChange={(e) => setEgoFormData({ ...egoFormData, hoursWeekly: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                     </>
                   )}
@@ -1351,23 +1455,23 @@ export default function Profile() {
                     <>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Device Name and Model</label>
-                        <input required type="text" onChange={(e) => setEgoFormData({...egoFormData, deviceName: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="text" placeholder="iPhone 17" onChange={(e) => setEgoFormData({ ...egoFormData, deviceName: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Number of Devices</label>
-                        <input required type="number" onChange={(e) => setEgoFormData({...egoFormData, numDevices: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="number" onChange={(e) => setEgoFormData({ ...egoFormData, numDevices: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">How many hours can you record weekly in household?</label>
-                        <input required type="number" onChange={(e) => setEgoFormData({...egoFormData, hoursHousehold: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="number" onChange={(e) => setEgoFormData({ ...egoFormData, hoursHousehold: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">How many hours can you record weekly in commercials?</label>
-                        <input required type="number" onChange={(e) => setEgoFormData({...egoFormData, hoursCommercial: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="number" onChange={(e) => setEgoFormData({ ...egoFormData, hoursCommercial: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Total contributors you have</label>
-                        <input required type="number" onChange={(e) => setEgoFormData({...egoFormData, totalContributors: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="number" onChange={(e) => setEgoFormData({ ...egoFormData, totalContributors: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                     </>
                   )}
@@ -1375,7 +1479,7 @@ export default function Profile() {
                     <>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Have you previously onboarded businesses/B2B connections?</label>
-                        <select required onChange={(e) => setEgoFormData({...egoFormData, previousB2B: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl">
+                        <select required onChange={(e) => setEgoFormData({ ...egoFormData, previousB2B: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl">
                           <option value="">Select...</option>
                           <option value="Yes">Yes</option>
                           <option value="No">No</option>
@@ -1383,26 +1487,26 @@ export default function Profile() {
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Portfolio / Reference Link</label>
-                        <input required type="url" onChange={(e) => setEgoFormData({...egoFormData, portfolioLink: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="url" onChange={(e) => setEgoFormData({ ...egoFormData, portfolioLink: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">How many vendors can you connect with us?</label>
-                        <input required type="number" onChange={(e) => setEgoFormData({...egoFormData, numVendorsConnect: e.target.value})} className="w-full p-3 border border-slate-200 rounded-xl" />
+                        <input required type="number" onChange={(e) => setEgoFormData({ ...egoFormData, numVendorsConnect: e.target.value })} className="w-full p-3 border border-slate-200 rounded-xl" />
                       </div>
                     </>
                   )}
                 </div>
               )}
             </div>
-            
+
             <div className="p-6 border-t border-slate-100 shrink-0 bg-white rounded-b-3xl space-y-4">
               {/* Controls for Step 1 */}
               {(!consentProject.isEgocentric || egoAppStep === 1) && (
                 <>
                   <label className="flex items-start gap-3 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={agreedToTerms} 
+                    <input
+                      type="checkbox"
+                      checked={agreedToTerms}
                       onChange={(e) => setAgreedToTerms(e.target.checked)}
                       className="mt-1 w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
@@ -1410,7 +1514,7 @@ export default function Profile() {
                       I confirm that I have read and understand this Agreement and consent to the collection, use, processing, disclosure, licensing, assignment (where applicable), commercialization, and other use of my Recordings, associated information (including, where applicable, biometric information), and Materials for the Purposes described above, including for the creation, training, generation, deployment, distribution, and commercialization of artificial intelligence systems, synthetic or simulated outputs (including Digital Replicas), and synthetic media by VisionCapture and its customers.
                     </span>
                   </label>
-                  <button 
+                  <button
                     onClick={() => {
                       if (consentProject.isEgocentric) {
                         setEgoAppStep(2);
@@ -1425,7 +1529,7 @@ export default function Profile() {
                   </button>
                 </>
               )}
-              
+
               {/* Controls for Step 2 */}
               {consentProject.isEgocentric && egoAppStep === 2 && (
                 <div className="flex gap-4">
@@ -1433,18 +1537,23 @@ export default function Profile() {
                   <button onClick={() => setEgoAppStep(3)} disabled={!egoContributorType} className="px-6 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 w-2/3">Continue</button>
                 </div>
               )}
-              
+
               {/* Controls for Step 3 */}
               {consentProject.isEgocentric && egoAppStep === 3 && (
                 <div className="flex gap-4">
                   <button onClick={() => setEgoAppStep(2)} className="px-6 py-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 w-1/3">Back</button>
-                  <button 
+                  <button
                     onClick={() => {
                       const formPayload = { ...egoFormData, contributorType: egoContributorType };
                       applyMutation.mutate({ projectId: consentProject._id, agreedToTerms: true, formData: formPayload });
-                    }} 
-                    disabled={applyMutation.isPending} 
-                    className="px-6 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 w-2/3"
+                    }}
+                    disabled={
+                      applyMutation.isPending ||
+                      (egoContributorType === 'individual' && (!egoFormData.deviceType || !egoFormData.deviceName || !egoFormData.hasHeadStrap || !egoFormData.hoursWeekly)) ||
+                      (egoContributorType === 'vendor' && (!egoFormData.deviceName || !egoFormData.numDevices || !egoFormData.hoursHousehold || !egoFormData.hoursCommercial || !egoFormData.totalContributors)) ||
+                      (egoContributorType === 'connections' && (!egoFormData.previousB2B || !egoFormData.portfolioLink || !egoFormData.numVendorsConnect))
+                    }
+                    className="px-6 py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed w-2/3 transition-all"
                   >
                     {applyMutation.isPending ? 'Submitting...' : 'Submit Final Application'}
                   </button>
@@ -1453,7 +1562,7 @@ export default function Profile() {
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* OTP Modal for Profile Save */}
       {isProfileOtpSent && createPortal(
@@ -1463,24 +1572,24 @@ export default function Profile() {
             <p className="text-slate-600 text-sm mb-6 leading-relaxed">
               We've sent a 6-digit code to <strong>{user?.email}</strong>. Enter it below to confirm your profile changes.
             </p>
-            <input 
-              type="text" 
-              placeholder="000000" 
+            <input
+              type="text"
+              placeholder="000000"
               maxLength={6}
-              value={profileOtp} 
-              onChange={e => setProfileOtp(e.target.value)} 
-              className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] font-mono font-bold text-xl mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+              value={profileOtp}
+              onChange={e => setProfileOtp(e.target.value)}
+              className="w-full bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 text-center tracking-[0.5em] font-mono font-bold text-xl mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
             <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => { setIsProfileOtpSent(false); setProfileOtp(''); }} 
+              <button
+                onClick={() => { setIsProfileOtpSent(false); setProfileOtp(''); }}
                 className="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                onClick={() => updateProfileMutation.mutate({ otp: profileOtp, profileData: profileFormDataToSubmit || profileFormData })} 
-                disabled={updateProfileMutation.isPending || profileOtp.length !== 6} 
+              <button
+                onClick={() => updateProfileMutation.mutate({ otp: profileOtp, profileData: profileFormDataToSubmit || profileFormData })}
+                disabled={updateProfileMutation.isPending || profileOtp.length !== 6}
                 className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {updateProfileMutation.isPending ? 'Saving...' : 'Confirm'}
@@ -1488,7 +1597,7 @@ export default function Profile() {
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       <Modal {...modalConfig} />
     </div>

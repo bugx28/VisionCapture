@@ -19,7 +19,8 @@ import Submission from '../models/Submission.js';
 import Payment from '../models/Payment.js';
 import ProjectMessage from '../models/ProjectMessage.js';
 import Notification from '../models/Notification.js';
-import Consent from '../models/Consent.js';
+import ProjectTerms from '../models/ProjectTerms.js';
+import crypto from 'crypto';
 import { waitUntil } from '@vercel/functions';
 import multer from 'multer';
 import { put, del } from '@vercel/blob';
@@ -1004,8 +1005,20 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
 
+    // Check Payment Lock (1st to 7th of month)
+    const paymentFields = ['upiId', 'cryptoNetwork', 'cryptoWalletAddress'];
+    const currentDay = new Date().getDate();
+    const isLockedPeriod = currentDay >= 1 && currentDay <= 7;
+    
+    // Check if user is trying to update payment fields during lock period
+    const isUpdatingPayment = paymentFields.some(field => profileData[field] !== undefined && profileData[field] !== user[field]);
+    if (isUpdatingPayment && isLockedPeriod) {
+       const remainingDays = 8 - currentDay;
+       return res.status(400).json({ error: `You can't edit payment details until ${remainingDays} days as payments for previous months are in Progress.` });
+    }
+
     // Update fields
-    const allowedFields = ['fullName', 'city', 'country', 'nativeLanguage', 'additionalLanguage', 'phone', 'experience', 'howFoundUs', 'upiId'];
+    const allowedFields = ['fullName', 'city', 'country', 'nativeLanguage', 'additionalLanguage', 'phone', 'experience', 'howFoundUs', 'upiId', 'cryptoNetwork', 'cryptoWalletAddress'];
     for (const field of allowedFields) {
       if (profileData[field] !== undefined) {
         user[field] = profileData[field];
@@ -1059,19 +1072,30 @@ app.post('/api/applications', authenticateUser, async (req, res) => {
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ error: 'Project not found' });
 
+    let termsHash = null;
     if (project.termsAndConditions) {
       if (!agreedToTerms) {
         return res.status(400).json({ error: 'You must agree to the Terms and Conditions to apply.' });
       }
-      const consent = new Consent({
-        projectId,
-        contributorId: req.user.id,
-        termsSnapshot: project.termsAndConditions
-      });
-      await consent.save();
+      
+      // Store a hash instead of duplicating the entire document
+      termsHash = crypto.createHash('sha256').update(project.termsAndConditions).digest('hex');
+      
+      // Keep exactly one copy of the text per version for this project
+      await ProjectTerms.findOneAndUpdate(
+        { projectId: project._id, termsHash },
+        { projectId: project._id, termsHash, content: project.termsAndConditions },
+        { upsert: true, new: true }
+      );
     }
 
-    const app = new Application({ projectId, contributorId: req.user.id, status: 'Applied', formData });
+    const app = new Application({ 
+      projectId, 
+      contributorId: req.user.id, 
+      status: 'Applied', 
+      formData,
+      ...(termsHash && { termsHash, agreedToTermsAt: new Date() })
+    });
     await app.save();
     res.status(201).json({ success: true, application: app });
   } catch (err) {

@@ -39,7 +39,7 @@ export default function Opportunities() {
   );
 
   return (
-    <div className="bg-blue-50 min-h-screen pt-24 sm:pt-32 pb-20">
+    <div className="bg-blue-50 min-h-screen pt-8 sm:pt-12 pb-20">
       <SEO title="Opportunities | Vision Capture" description="High-paying remote AI training jobs and data collection opportunities." />
       
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">

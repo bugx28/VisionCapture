@@ -182,7 +182,7 @@ export default function OpportunityManager() {
 
   if (!token) {
     return (
-      <div className="pt-32 pb-20 max-w-md mx-auto px-4 min-h-[70vh] flex flex-col justify-center">
+      <div className="pt-8 pb-20 max-w-md mx-auto px-4 min-h-[70vh] flex flex-col justify-center">
         <h1 className="text-3xl font-bold text-slate-900 text-center mb-8">Opportunity Manager Login</h1>
         <form onSubmit={handleLogin} className="bg-white/95 border border-slate-200 shadow-xl rounded-3xl p-8 space-y-6">
           {loginError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center font-medium">{loginError}</div>}
@@ -201,7 +201,7 @@ export default function OpportunityManager() {
   }
 
   return (
-    <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
+    <div className="pt-8 sm:pt-12 pb-20 px-4 sm:px-8 max-w-7xl mx-auto min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Opportunity Manager</h1>

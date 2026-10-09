@@ -45,7 +45,7 @@ export default function ProjectChat({ projectId, projectName, token, currentUser
   });
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     // Mark messages as read when viewing the chat
     const markAsRead = async () => {

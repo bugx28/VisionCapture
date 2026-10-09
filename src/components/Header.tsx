@@ -1,4 +1,4 @@
-import { Menu, X, User, Bell, Sun, Moon } from 'lucide-react';
+import { Menu, X, User, Bell } from 'lucide-react';
 import logo from '../assets/logo.svg';
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -19,7 +19,6 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token') || !!localStorage.getItem('adminToken') || !!localStorage.getItem('pmToken'));
   const [profileLink, setProfileLink] = useState(localStorage.getItem('adminToken') ? '/admin' : localStorage.getItem('pmToken') ? '/project-manager' : '/profile');
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const [modalConfig, setModalConfig] = useState<ModalProps>({
     isOpen: false,
@@ -41,30 +40,6 @@ export default function Header() {
     }));
   };
 
-  useEffect(() => {
-    // Check saved theme
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('theme-dark');
-    } else {
-      document.documentElement.classList.remove('theme-dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    setIsDarkMode(prev => {
-      const newMode = !prev;
-      if (newMode) {
-        document.documentElement.classList.add('theme-dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('theme-dark');
-        localStorage.setItem('theme', 'light');
-      }
-      return newMode;
-    });
-  };
   const [showNotifications, setShowNotifications] = useState(false);
   const isRegularUser = isLoggedIn && profileLink === '/profile';
 
@@ -194,9 +169,9 @@ export default function Header() {
   };
 
   return (
-    <header className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 w-full ${isScrolled
-      ? 'top-6 max-w-7xl'
-      : 'top-0 max-w-[1600px] pt-6 px-4 md:px-8'
+    <header className={`sticky top-0 z-50 transition-all duration-500 w-full mx-auto ${isScrolled
+      ? 'pt-4 px-4 md:px-8 max-w-7xl'
+      : 'pt-6 px-4 md:px-8 max-w-[1600px]'
       }`}>
       <div className={`transition-all duration-500 bg-white/95 border border-slate-200 shadow-lg ${isScrolled
         ? 'rounded-full px-6 sm:px-8 py-2'
@@ -277,13 +252,6 @@ export default function Header() {
           </div>
 
           <div className="hidden xl:flex items-center gap-4">
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
             <Link
               to="/contributors"
               className="relative group px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold text-sm transition-all shadow-lg hover:shadow-cyan-500/50"
@@ -360,13 +328,6 @@ export default function Header() {
               <span className="absolute top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] animate-shine"></span>
               <span className="relative z-10">Record to earn</span>
             </Link>
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-slate-600 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
 
             {isRegularUser && (
               <div className="relative">

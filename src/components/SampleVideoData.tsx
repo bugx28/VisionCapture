@@ -62,10 +62,11 @@ function LazyVideo({ src, title }: { src: string; title: string }) {
     return (
       <video
         ref={videoRef}
-        src={`${src}#t=0.001`}
+        src={src}
+        poster={src?.replace('.mp4', '-poster.jpg') || ''}
         muted
         playsInline
-        preload="metadata"
+        preload="none"
         className="w-full h-full object-cover"
       />
     );
@@ -75,6 +76,7 @@ function LazyVideo({ src, title }: { src: string; title: string }) {
     <video
       ref={videoRef}
       src={src}
+      poster={src?.replace('.mp4', '-poster.jpg') || ''}
       loop
       muted
       playsInline

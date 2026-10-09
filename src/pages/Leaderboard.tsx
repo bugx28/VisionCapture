@@ -36,7 +36,7 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-8 pb-12">
       <SEO title="Referral Leaderboard | Vision Capture" description="Top contributors leaderboard and monthly prizes." />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

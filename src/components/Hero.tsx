@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Clock, MapPin, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -95,7 +96,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[100dvh] flex flex-col pt-20 sm:pt-32 pb-8 sm:pb-20 overflow-hidden bg-blue-50 z-0">
+    <section className="relative min-h-[100dvh] flex flex-col pt-8 sm:pt-12 pb-8 sm:pb-20 overflow-hidden bg-blue-50 z-0">
       {/* Background Gradients */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-200/40 mix-blend-multiply filter blur-[100px]" />
@@ -121,8 +122,8 @@ export default function Hero() {
                 loop
                 muted
                 playsInline
-                preload="none"
-                poster="/ego.webp"
+                preload="metadata"
+                poster={videoSrc?.replace('.mp4', '-poster.jpg') || '/ego.webp'}
                 className="w-full h-full object-cover opacity-90 transition-opacity duration-1000"
                 src={videoSrc}
               />
@@ -142,13 +143,13 @@ export default function Hero() {
               </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <a
-                href="mailto:contact@visioncapture.in"
+              <Link
+                to="/partner-with-us"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-sky-500 text-white font-bold hover:bg-sky-400 transition-colors shadow-xl shadow-sky-500/20 border border-sky-400"
               >
                 Discuss Your Project
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </Link>
               <a
                 href="#what-we-record"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/30"

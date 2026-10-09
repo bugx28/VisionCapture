@@ -178,6 +178,7 @@ export default function ProcessFlow() {
                 muted
                 playsInline
                 preload="metadata"
+                poster="/orb-video-poster.jpg"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 src="/orb-video.mp4"
               />

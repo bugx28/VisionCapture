@@ -267,7 +267,7 @@ export default function Signup() {
         description="Sign up to become a Vision Capture contributor and start earning by collecting POV and egocentric video data."
         canonicalUrl="https://visioncapture.in/signup"
       />
-      <div className="pt-24 pb-12">
+      <div className="pt-8 pb-12">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Create your Account</h1>
           <p className="text-slate-600">Join Vision Capture to start contributing and earning.</p>

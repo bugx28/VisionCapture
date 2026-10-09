@@ -36,7 +36,7 @@ export default function Contributors() {
   };
 
   return (
-    <div className="bg-blue-50 min-h-screen pt-24 pb-12">
+    <div className="bg-blue-50 min-h-screen pt-8 pb-12">
       <SEO title="Active Projects & Contributors | Vision Capture" description="Browse and apply for active data collection projects as a contributor. We are hiring for egocentric video collection." canonicalUrl="https://visioncapture.in/contributors" />
       
       {/* Combined Banner: How it Works & Hiring */}
