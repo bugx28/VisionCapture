@@ -53,11 +53,7 @@ export default function Admin() {
 
   // Messaging State
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [newMessage, setNewMessage] = useState('');
 
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isFocused, setIsFocused] = useState(false);
 
   // PM Creation State
   const [pmEmail, setPmEmail] = useState('');
@@ -89,14 +85,7 @@ export default function Admin() {
     }
   };
 
-  const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  };
+
 
   // Inquiries State
   const [selectedContact, setSelectedContact] = useState<any>(null);
@@ -211,21 +200,7 @@ export default function Admin() {
     }
   });
 
-  const { data: messages = [], isLoading: isMessagesLoading } = useQuery({
-    queryKey: ['messages', selectedUser?._id, token],
-    queryFn: async () => {
-      const res = await fetch(`/api/messages/${selectedUser._id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      return data.messages;
-    },
-    enabled: !!token && !!selectedUser?._id,
-    refetchInterval: 10000,
-    staleTime: 60 * 1000
-  });
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Mutations
   const deleteUserMutation = useMutation({
@@ -312,23 +287,7 @@ export default function Admin() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-referral-settings'] })
   });
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ content, receiverId: selectedUser._id })
-      });
-      if (!res.ok) throw new Error('Failed to send message');
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', selectedUser?._id] });
-    }
-  });
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -359,21 +318,7 @@ export default function Admin() {
     window.location.reload();
   };
 
-  const sendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedUser) return;
-    sendMessageMutation.mutate(newMessage);
-    setNewMessage('');
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-  };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewMessage(e.target.value);
-    e.target.style.height = 'auto';
-    e.target.style.height = `${e.target.scrollHeight}px`;
-  };
 
   const deleteUser = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -863,43 +808,6 @@ export default function Admin() {
                     <div className="col-span-2"><span className="text-slate-400 block">Projects</span><span className="font-semibold text-slate-700 truncate block" title={selectedUser.projectsInterestedIn?.join(', ')}>{selectedUser.projectsInterestedIn?.join(', ') || '-'}</span></div>
                   </div>
                 </div>
-                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
-                  {isMessagesLoading ? (
-                    <div className="space-y-4 animate-pulse">
-                      <div className="h-10 bg-slate-200 rounded-2xl w-3/4 ml-auto"></div>
-                      <div className="h-16 bg-slate-200 rounded-2xl w-1/2"></div>
-                      <div className="h-12 bg-slate-200 rounded-2xl w-2/3 ml-auto"></div>
-                    </div>
-                  ) : messages.length === 0 ? (
-                    <p className="text-slate-500 text-center m-auto">No messages yet.</p>
-                  ) : (
-                    messages.map((msg: any, idx: number) => (
-                      <div key={idx} className={`max-w-[80%] p-3 rounded-2xl whitespace-pre-wrap ${msg.senderId !== selectedUser._id ? 'bg-blue-600 text-white self-end rounded-tr-none' : 'bg-slate-200 text-slate-900 self-start rounded-tl-none'}`}>
-                        {msg.content}
-                      </div>
-                    ))
-                  )}
-                </div>
-                <form onSubmit={sendMessage} className="p-4 border-t border-slate-100 flex gap-2 items-end bg-white">
-                  <textarea 
-                    ref={textareaRef}
-                    rows={isFocused || newMessage.length > 0 ? 4 : 1}
-                    value={newMessage} 
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => {
-                      setIsFocused(false);
-                      if (!newMessage && textareaRef.current) {
-                        textareaRef.current.style.height = 'auto';
-                      }
-                    }}
-                    onChange={handleTextareaChange} 
-                    placeholder="Type a message... (Press Enter for new line)" 
-                    className="flex-1 bg-blue-50 border border-slate-200 rounded-xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-[360px] overflow-y-auto transition-all duration-200"
-                  />
-                  <button type="submit" disabled={sendMessageMutation.isPending} className="bg-slate-900 text-white px-6 py-2 h-[48px] rounded-xl font-bold hover:bg-slate-800 transition-colors disabled:opacity-50">
-                    {sendMessageMutation.isPending ? '...' : 'Send'}
-                  </button>
-                </form>
               </>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-slate-500 p-8 text-center">

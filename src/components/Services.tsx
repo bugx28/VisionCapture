@@ -26,41 +26,39 @@ export default function Services() {
         </div>
 
         <div className="flex justify-center">
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.2 }}
-              className="relative bg-white/95 border border-white shadow-xl rounded-[2rem] p-5 sm:p-8 max-w-6xl w-full hover:bg-white transition-all group overflow-hidden"
-            >
-              <a href="/partner-with-us" className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-1 sm:gap-2 bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-colors text-xs sm:text-sm font-bold shadow-sm z-10">
-                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                Contact Us
-              </a>
-              
-              <div className="flex flex-col md:flex-row gap-4 sm:gap-6 items-start md:items-center mb-6 sm:mb-8 pt-10 sm:pt-0">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-all duration-300 shadow-md">
-                  <div className="transition-colors duration-300">
-                    {service.icon}
-                  </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="bg-white border border-slate-200 shadow-xl rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 lg:p-12 max-w-6xl w-full"
+          >
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start lg:items-center justify-between mb-8 sm:mb-12">
+              <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-start sm:items-center flex-1">
+                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[1.5rem] bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/20">
+                  <Glasses className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
                 <div>
-                  <h4 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">{service.title}</h4>
-                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-                    {service.description}
+                  <h4 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-slate-900 mb-2 sm:mb-3">Egocentric Video Data</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base lg:text-lg max-w-2xl">
+                    High-fidelity first-person perspective video collection using smart glasses, head-mounted cameras, and specialized rigs. Essential for teaching AI models to understand the world from a human viewpoint.
                   </p>
                 </div>
               </div>
-
-              {/* How It Works embedded section */}
-              <div className="w-full pt-6 sm:pt-8 border-t border-slate-200/60 mt-6 sm:mt-8">
-                <HowItWorks />
+              
+              <div className="w-full lg:w-auto shrink-0">
+                <a href="/partner-with-us" className="inline-flex w-full lg:w-auto justify-center items-center gap-2 bg-slate-900 text-white hover:bg-slate-800 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all text-sm sm:text-base font-bold shadow-lg shadow-slate-900/20">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  Partner With Us
+                </a>
               </div>
+            </div>
 
-            </motion.div>
-          ))}
+            {/* How It Works embedded section */}
+            <div className="w-full pt-8 sm:pt-12 border-t-2 border-slate-100">
+              <HowItWorks />
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

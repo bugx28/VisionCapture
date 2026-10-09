@@ -117,8 +117,22 @@ export default function ProcessFlow() {
               <p className="text-slate-700 text-sm leading-relaxed max-w-[280px]">
                 {step.desc}
               </p>
+
+              {/* Mobile Connector Arrow */}
+              {index < steps.length - 1 && (
+                <div className="lg:hidden mt-8 flex flex-col items-center">
+                  <div className="w-px h-8 bg-slate-300" />
+                  <div className="w-2 h-2 border-b-2 border-r-2 border-slate-300 transform rotate-45 -mt-1" />
+                </div>
+              )}
             </div>
           ))}
+        </div>
+
+        {/* Mobile Connector from Step 3 to Video Card */}
+        <div className="lg:hidden w-full flex flex-col items-center mt-2 mb-4">
+          <div className="w-px h-8 bg-slate-300" />
+          <div className="w-2 h-2 border-b-2 border-r-2 border-slate-300 transform rotate-45 -mt-1" />
         </div>
 
         {/* Connecting SVG from Step 3 to Video Card (Desktop) */}
@@ -157,26 +171,19 @@ export default function ProcessFlow() {
               Watch how egocentric data enables robots to understand, learn and interact with the real world.
             </p>
 
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-              {isMobile ? (
-                <video
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-cover"
-                  src="/orb-video.mp4#t=0.001"
-                />
-              ) : (
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="none"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-                  src="/orb-video.mp4"
-                />
-              )}
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-inner group-hover:shadow-2xl transition-all duration-500">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                src="/orb-video.mp4"
+              />
+              
+              {/* Optional: A play icon or gradient overlay to make it look premium on mobile */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none" />
             </div>
 
           </div>

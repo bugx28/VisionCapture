@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'r
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import Home from './pages/Home';
 
-const Home = React.lazy(() => import('./pages/Home'));
 const PartnerWithUs = React.lazy(() => import('./pages/PartnerWithUs'));
 const Contributors = React.lazy(() => import('./pages/Contributors'));
 const Profile = React.lazy(() => import('./pages/Profile'));

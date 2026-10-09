@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Clock, MapPin, Briefcase, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Clock, MapPin, Briefcase, ChevronLeft, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import ProcessFlow from './ProcessFlow';
 import FormattedText from './FormattedText';
+
+const TypewriterText = ({ text, delay = 30 }: { text: string; delay?: number }) => {
+  const [currentText, setCurrentText] = useState('');
+  
+  useEffect(() => {
+    let i = 0;
+    setCurrentText('');
+    const intervalId = setInterval(() => {
+      setCurrentText(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(intervalId);
+    }, delay);
+    return () => clearInterval(intervalId);
+  }, [text, delay]);
+
+  return <span>{currentText}<span className="animate-pulse border-r-2 border-white ml-1"></span></span>;
+};
 
 export default function Hero() {
   const { data: fetchedProjects } = useQuery({
@@ -66,12 +83,10 @@ export default function Hero() {
     window.addEventListener('resize', checkMobile);
 
     // Defer heavy video download until after initial paint (LCP)
-    // ONLY download on desktop to save massive battery and GPU on mobile
+    // Now loading on both mobile and desktop to be more impactful
     const timer = setTimeout(() => {
-      if (window.innerWidth >= 768) {
-        setVideoSrc('/intro-video.mp4');
-      }
-    }, 500);
+      setVideoSrc('/intro-video.mp4');
+    }, 100);
     
     return () => {
       clearTimeout(timer);
@@ -80,27 +95,11 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-[100dvh] flex flex-col pt-20 sm:pt-32 pb-8 sm:pb-20 overflow-hidden">
-      {/* Background Media */}
-      <div className="absolute inset-0 z-0 bg-blue-50">
-        {isMobile ? (
-          <img
-            src="/ego.webp"
-            alt="Vision Capture Background"
-            className="w-full h-full object-cover opacity-80"
-          />
-        ) : (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="none"
-            poster="/ego.webp"
-            className="w-full h-full object-cover opacity-80 transition-opacity duration-1000"
-            src={videoSrc}
-          />
-        )}
+    <section className="relative min-h-[100dvh] flex flex-col pt-20 sm:pt-32 pb-8 sm:pb-20 overflow-hidden bg-blue-50 z-0">
+      {/* Background Gradients */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-200/40 mix-blend-multiply filter blur-[100px]" />
+        <div className="hidden md:block absolute top-[20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-200/40 mix-blend-multiply filter blur-[120px]" />
       </div>
 
       <div className="w-full max-w-[1600px] mx-auto relative z-10 flex flex-col flex-1 px-4">
@@ -113,41 +112,50 @@ export default function Hero() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-full p-5 sm:p-8 lg:p-12 bg-white/70 sm:backdrop-blur-md rounded-3xl border border-white/50 shadow-2xl flex flex-col items-start text-left order-last lg:order-first"
+            className="relative w-full p-6 sm:p-10 lg:p-14 flex flex-col items-start text-left order-last lg:order-first drop-shadow-2xl overflow-hidden rounded-[2rem] border border-slate-700/50"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-black/80 text-white border border-slate-200 shadow-sm text-xs font-bold rounded-full uppercase tracking-wider mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-600 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-600" />
-              </span>
-              India's Premier Data Infrastructure
+            {/* Video Background for Text Section */}
+            <div className="absolute inset-0 z-0 bg-slate-900">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="none"
+                poster="/ego.webp"
+                className="w-full h-full object-cover opacity-90 transition-opacity duration-1000"
+                src={videoSrc}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-900/20 to-slate-900/60" />
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-display font-extrabold tracking-tight text-black leading-[1.15] mb-4 sm:mb-6 drop-shadow-lg">
-              Real-world Data for <br />
-              <span className="text-blue-600 drop-shadow-md">
-                Physical AI
-              </span>
-            </h1>
+            <div className="relative z-10 w-full">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-display font-extrabold tracking-tight text-white leading-[1.15] mb-4 sm:mb-6 drop-shadow-lg">
+                Real-world Data for <br />
+                <span className="text-sky-400 drop-shadow-md">
+                  Physical AI
+                </span>
+              </h1>
 
-            <p className="text-sm sm:text-lg lg:text-xl text-slate-800 mb-6 sm:mb-10 leading-relaxed max-w-2xl font-medium drop-shadow-md">
-              We capture authentic human demonstrations and egocentric multimodal data to accelerate the development of next-generation intelligent robotics and embodied AI systems.
-            </p>
+              <p className="text-base sm:text-lg lg:text-xl text-slate-200 mb-6 sm:mb-10 leading-relaxed max-w-2xl font-medium drop-shadow-md min-h-[120px] sm:min-h-[90px]">
+                <TypewriterText text="We capture authentic human demonstrations and egocentric multimodal data to accelerate the development of next-generation intelligent robotics and embodied AI systems." delay={40} />
+              </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <a
                 href="mailto:contact@visioncapture.in"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-black text-white font-bold hover:bg-slate-100 transition-colors shadow-xl border border-slate-200"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-sky-500 text-white font-bold hover:bg-sky-400 transition-colors shadow-xl shadow-sky-500/20 border border-sky-400"
               >
                 Discuss Your Project
                 <ArrowRight className="w-4 h-4" />
               </a>
               <a
                 href="#what-we-record"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-black/10 text-black font-bold hover:bg-black/20 transition-colors border border-black/30"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/30"
               >
                 Recording Environments
               </a>
+            </div>
             </div>
           </motion.div>
 
@@ -159,17 +167,14 @@ export default function Hero() {
             className="w-full h-full flex flex-col justify-center order-first lg:order-last"
           >
             <div className="mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 flex items-center gap-3">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 flex items-center gap-2.5">
+                <Sparkles className="w-6 h-6 text-sky-500" />
                 Active Projects
               </h2>
-              <p className="text-blue-700 text-base sm:text-lg font-medium">Start Earning Today</p>
+              <p className="text-sky-600 text-base sm:text-lg font-medium">Start Earning Today</p>
             </div>
 
-            <div className="relative w-full h-[420px] sm:h-[560px] group">
+            <div className="relative w-full h-[520px] sm:h-[560px] group">
               {projectsData && projectsData.length > 1 && (
                 <>
                   <button
@@ -212,7 +217,7 @@ export default function Hero() {
 
                           <div className="relative z-20 flex flex-col h-full justify-end p-6 sm:p-8 pb-12">
                             <div className="flex gap-3 mb-4">
-                              <span className="px-3 py-1 bg-blue-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-blue-400/30">Featured</span>
+                              <span className="px-3 py-1 bg-sky-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-sky-400/30">Featured</span>
                               <span className="px-3 py-1 bg-green-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg border border-green-400/30">High Pay</span>
                             </div>
                             <h3 className="text-2xl sm:text-4xl font-display font-bold text-white mb-2 sm:mb-3 leading-tight">
@@ -223,14 +228,14 @@ export default function Hero() {
                             </p>
 
                             <div className="mb-6 space-y-2 bg-slate-900/40 p-4 rounded-xl border border-white/10">
-                              <div className="text-xs font-bold text-blue-300 uppercase tracking-wide">Quick Requirements</div>
+                              <div className="text-xs font-bold text-sky-300 uppercase tracking-wide">Quick Requirements</div>
                               <ul className="space-y-1.5">
                                 <li className="flex items-start gap-2 text-white text-sm font-medium">
-                                  <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
                                   <span>Smartphone (iPhone 11+, Pixel 6+, S21+) & Head strap</span>
                                 </li>
                                 <li className="flex items-center gap-2 text-white text-sm font-medium">
-                                  <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
+                                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
                                   <span>No experience required</span>
                                 </li>
                               </ul>
@@ -242,7 +247,7 @@ export default function Hero() {
                               </div>
                               <a
                                 href="/signup?project=Egocentric%20Video%20Contributors"
-                                className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-colors shadow-xl shadow-blue-600/30 text-base sm:text-lg group"
+                                className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3.5 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-400 transition-colors shadow-xl shadow-sky-500/30 text-base sm:text-lg group"
                               >
                                 Apply Now
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -269,7 +274,7 @@ export default function Hero() {
 
                           <div className="p-4 sm:p-8 flex flex-col flex-1 pb-6 sm:pb-10">
                             <div className="flex justify-between items-start mb-5">
-                              <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-wider rounded-full shadow-sm">
+                              <span className="px-3 py-1 bg-sky-50 text-sky-700 font-bold text-xs uppercase tracking-wider rounded-full shadow-sm">
                                 {currentProject.category || 'General'}
                               </span>
                               <span className="px-4 py-1.5 bg-green-500 text-white font-black text-sm uppercase tracking-wide rounded-full shadow-md shadow-green-500/20">
@@ -277,7 +282,7 @@ export default function Hero() {
                               </span>
                             </div>
 
-                            <h3 className="text-xl sm:text-3xl font-display font-bold text-slate-900 mb-2 sm:mb-3 leading-tight hover:text-blue-600 transition-colors line-clamp-2">
+                            <h3 className="text-xl sm:text-3xl font-display font-bold text-slate-900 mb-2 sm:mb-3 leading-tight hover:text-sky-500 transition-colors line-clamp-2">
                               {currentProject.title}
                             </h3>
 
@@ -311,7 +316,7 @@ export default function Hero() {
                             <div className="mt-6">
                               <a
                                 href="/contributors"
-                                className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30 text-base sm:text-lg"
+                                className="flex items-center justify-center gap-2 w-full py-3 bg-sky-500 text-white font-bold rounded-xl hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/30 text-base sm:text-lg"
                               >
                                 Apply Now
                                 <ArrowRight className="w-5 h-5" />
@@ -328,7 +333,7 @@ export default function Hero() {
                         {projectsData.map((_: any, idx: number) => (
                           <div
                             key={idx}
-                            className={`h-1.5 rounded-full transition-all ${idx === currentProjectIndex ? 'w-6 bg-blue-600' : 'w-2 bg-slate-300'}`}
+                            className={`h-1.5 rounded-full transition-all ${idx === currentProjectIndex ? 'w-6 bg-sky-500' : 'w-2 bg-slate-300'}`}
                           />
                         ))}
                       </div>

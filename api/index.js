@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import compression from 'compression';
 import Contact from '../models/Contact.js';
 import User from '../models/User.js';
-import Message from '../models/Message.js';
+
 import Project from '../models/Project.js';
 import Opportunity from '../models/Opportunity.js';
 import PlatformStats from '../models/PlatformStats.js';
@@ -332,64 +332,6 @@ app.get('/api/users/me', authenticateUser, async (req, res) => {
   }
 });
 
-app.get('/api/messages/:userId', authenticateUser, async (req, res) => {
-  try {
-    await connectDB();
-    let query;
-    if (req.params.userId === req.user.id) {
-      // User fetching their own messages with admin
-      query = { $or: [{ senderId: req.user.id }, { receiverId: req.user.id }] };
-    } else {
-      // Admin fetching messages with a specific user
-      query = {
-        $or: [
-          { senderId: req.params.userId, receiverId: req.user.id },
-          { senderId: req.user.id, receiverId: req.params.userId },
-        ]
-      };
-    }
-    const messages = await Message.find(query).sort({ createdAt: 1 }).lean();
-
-    // Auto-deliver welcome message if it's the user's first time checking messages
-    if (messages.length === 0 && req.params.userId === req.user.id) {
-      const adminUser = await User.findOne({ role: 'admin' });
-      if (adminUser) {
-        const welcomeContent = `Welcome to Vision Capture!\n\nThank you for joining us. We're excited to have you as part of our contributor community.\n\nWe'll notify you when projects matching your profile become available.\n\nRegards,\nVision Capture Team`;
-        const welcomeMsg = new Message({
-          senderId: adminUser._id,
-          receiverId: req.user.id,
-          content: welcomeContent
-        });
-        await welcomeMsg.save();
-        messages.push(welcomeMsg);
-      }
-    }
-
-    res.json({ success: true, messages });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch messages.' });
-  }
-});
-
-app.post('/api/messages', authenticateUser, async (req, res) => {
-  try {
-    let { receiverId, content } = req.body;
-    await connectDB();
-
-    // If receiver is 'admin', find the admin user's ID
-    if (receiverId === 'admin') {
-      const adminUser = await User.findOne({ role: 'admin' });
-      if (!adminUser) return res.status(404).json({ error: 'Admin not found' });
-      receiverId = adminUser._id;
-    }
-
-    const msg = new Message({ senderId: req.user.id, receiverId, content });
-    await msg.save();
-    res.status(201).json({ success: true, message: msg });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to send message.' });
-  }
-});
 
 // =======================
 // ADMIN ROUTES
