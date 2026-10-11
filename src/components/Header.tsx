@@ -124,7 +124,7 @@ export default function Header() {
   const renderNotifications = () => {
     if (!showNotifications) return null;
     return (
-      <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] max-h-96 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 z-50">
+      <div className="absolute right-[-3rem] sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] max-h-96 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 z-50">
         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-50 rounded-t-2xl">
           <h3 className="font-bold text-slate-800">Notifications</h3>
           {unreadCount > 0 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>}
@@ -157,7 +157,7 @@ export default function Header() {
                   onClick={() => !n.isRead && markAsRead(n._id)}
                   className={`p-3 rounded-xl mb-1 cursor-pointer transition-colors ${n.isRead ? 'opacity-60 hover:bg-blue-50' : 'bg-blue-50/50 border border-blue-100 hover:bg-blue-50'}`}
                 >
-                  <div className="text-sm text-slate-800">{renderMessage(n.message)}</div>
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap">{renderMessage(n.message)}</div>
                   <div className="text-xs text-slate-400 mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
                 </div>
               );

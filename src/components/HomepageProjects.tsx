@@ -40,19 +40,14 @@ export default function HomepageProjects() {
         ) : null}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Shine Animation Keyframes */}
-          <style>{`
-            @keyframes shine {
-              0% { transform: translateX(-200%) skewX(-15deg); }
-              20%, 100% { transform: translateX(300%) skewX(-15deg); }
-            }
-          `}</style>
-
           {/* Dedicated Egocentric Card */}
+          {(() => {
+            const egoProject = projects?.find((p: any) => p.isEgocentric);
+            return (
           <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl hover:-translate-y-1 transition-transform duration-300 group flex flex-col h-full relative ring-1 ring-white/10">
             {/* Shine Animation Layer */}
             <div className="absolute inset-0 z-10 pointer-events-none opacity-50 mix-blend-overlay overflow-hidden rounded-3xl">
-              <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-80 animate-[shine_4s_ease-in-out_infinite]" />
+              <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-80 animate-shine" />
             </div>
 
             <div className="h-40 sm:h-48 bg-slate-800 overflow-hidden relative">
@@ -63,7 +58,14 @@ export default function HomepageProjects() {
             </div>
 
             <div className="p-5 sm:p-8 flex-1 flex flex-col relative z-20">
-              <h3 className="text-xl sm:text-2xl font-display font-bold text-white mb-2 sm:mb-3">Egocentric Video Contributors ( Remote)</h3>
+              <div className="flex items-start justify-between mb-2 gap-2">
+                <h3 className="text-xl sm:text-2xl font-display font-bold text-white">Egocentric Video Contributors ( Remote)</h3>
+                {(egoProject?.payRate || 'High Pay') && (
+                  <span className="font-black text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-xl text-xs sm:text-sm shrink-0 mt-1 whitespace-nowrap">
+                    {egoProject?.payRate || 'High Pay'}
+                  </span>
+                )}
+              </div>
               <p className="text-blue-300 font-medium text-sm mb-2">Apply if you are Individual, Vendor, Has connections.</p>
               <p className="text-slate-300 text-sm mb-4 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
 
@@ -89,6 +91,8 @@ export default function HomepageProjects() {
               </div>
             </div>
           </div>
+            );
+          })()}
 
           {/* Dynamic Projects */}
           {projects?.filter((p: any) => !p.isEgocentric).map((project: any) => (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Briefcase, Plus, Users, FileText, CreditCard, MessageSquare, ArrowLeft, Edit2, Trash2, Send, Mail, X } from 'lucide-react';
+import { Briefcase, Plus, Users, FileText, CreditCard, MessageSquare, ArrowLeft, Edit2, Trash2, Send, Mail, X, BarChart2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import FormattedText from '../components/FormattedText';
 import SEO from '../components/SEO';
@@ -522,7 +522,12 @@ export default function ProjectManager() {
               </div>
             )}
           </div>
-          <button onClick={handleLogout} className="px-4 py-2 text-sm font-bold border border-slate-200 text-slate-600 rounded-lg hover:bg-blue-50">Logout</button>
+          <div className="flex gap-2">
+            <button onClick={() => window.location.href = '/pm-visualisations'} className="px-4 py-2 text-sm font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2">
+              <BarChart2 className="w-4 h-4" /> Visualisations
+            </button>
+            <button onClick={handleLogout} className="px-4 py-2 text-sm font-bold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">Logout</button>
+          </div>
         </div>
 
         {/* Global Dashboard View */}
@@ -657,7 +662,7 @@ export default function ProjectManager() {
             )}
 
             {egocentricTab === 'applications' && (
-              <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm h-[600px] overflow-hidden flex flex-col">
+              <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm min-h-[550px] lg:h-[calc(100vh-220px)] overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-slate-200">
                   <h3 className="text-xl font-bold text-slate-900">Applications</h3>
                 </div>
@@ -695,7 +700,7 @@ export default function ProjectManager() {
             )}
 
             {egocentricTab === 'payments' && (
-              <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm h-[600px] overflow-hidden flex flex-col">
+              <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm min-h-[550px] lg:h-[calc(100vh-220px)] overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-slate-200">
                   <h3 className="text-xl font-bold text-slate-900">Payments</h3>
                 </div>
@@ -704,7 +709,7 @@ export default function ProjectManager() {
             )}
 
             {egocentricTab === 'messages' && (
-              <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm h-[600px] overflow-hidden flex flex-col">
+              <div className="bg-white p-0 rounded-3xl border border-slate-200 shadow-sm min-h-[550px] lg:h-[calc(100vh-220px)] overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-slate-200">
                   <h3 className="text-xl font-bold text-slate-900">Messages</h3>
                 </div>
@@ -1119,7 +1124,7 @@ export default function ProjectManager() {
               ))}
             </div>
 
-            <div className={`flex-1 bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col ${activeProjectTab === 'messages' ? 'overflow-hidden' : ''}`}>
+            <div className={`flex-1 min-h-0 bg-white rounded-3xl border border-slate-200 shadow-xl flex flex-col ${activeProjectTab === 'messages' ? 'overflow-hidden' : ''}`}>
 
               {/* INNER TAB: OVERVIEW */}
               {activeProjectTab === 'overview' && (
@@ -1469,6 +1474,45 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
   });
   const [pendingAction, setPendingAction] = useState<{ id: string, status: string } | null>(null);
   const [selectedApp, setSelectedApp] = useState<any>(null);
+  const [selectedContributors, setSelectedContributors] = useState<string[]>([]);
+  const [notifyModal, setNotifyModal] = useState<{isOpen: boolean, type: 'email' | 'notification', subject: string, message: string}>({ isOpen: false, type: 'email', subject: '', message: '' });
+
+  const toggleSelection = (userId: string) => {
+    setSelectedContributors(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]);
+  };
+
+  const toggleAll = (appsToSelect: any[]) => {
+    if (!appsToSelect || appsToSelect.length === 0) return;
+    if (selectedContributors.length === appsToSelect.length) {
+      setSelectedContributors([]);
+    } else {
+      setSelectedContributors(appsToSelect.map(a => a.contributorId?._id).filter(Boolean));
+    }
+  };
+
+  const sendNotificationMutation = useMutation({
+    mutationFn: async () => {
+      const endpoint = notifyModal.type === 'email' ? '/api/pm/mail-contributors' : '/api/pm/notifications/send';
+      const payload = notifyModal.type === 'email' 
+        ? { userIds: selectedContributors, subject: notifyModal.subject, message: notifyModal.message } 
+        : { targetUserIds: selectedContributors, message: notifyModal.message };
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      return res.json();
+    },
+    onSuccess: () => {
+      setNotifyModal({ isOpen: false, type: 'email', subject: '', message: '' });
+      setSelectedContributors([]);
+      setModalConfig({ isOpen: true, type: 'alert', title: 'Success', message: 'Message sent successfully.', onClose: () => setModalConfig(prev => ({ ...prev, isOpen: false })) });
+    },
+    onError: () => {
+      setModalConfig({ isOpen: true, type: 'alert', title: 'Error', message: 'Failed to send message.', onClose: () => setModalConfig(prev => ({ ...prev, isOpen: false })) });
+    }
+  });
 
   const confirmAction = (id: string, status: string) => {
     setPendingAction({ id, status });
@@ -1514,7 +1558,17 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
 
   return (
     <div className="overflow-y-auto h-full p-6">
-      <div className="mb-4 flex justify-end gap-4">
+      <div className="mb-4 flex justify-between items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          {selectedContributors.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">{selectedContributors.length} selected</span>
+              <button onClick={() => setNotifyModal({ isOpen: true, type: 'notification', subject: '', message: '' })} className="text-sm font-bold bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition-colors shadow-sm">Notify</button>
+              <button onClick={() => setNotifyModal({ isOpen: true, type: 'email', subject: '', message: '' })} className="text-sm font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">Email</button>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-wrap justify-end gap-3">
         <select
           value={filterStatus}
           onChange={e => setFilterStatus(e.target.value)}
@@ -1566,45 +1620,54 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
             </div>
           </>
         )}
+        </div>
       </div>
-      <table className="w-full text-left text-sm">
-        <thead className="bg-blue-50 border-b border-slate-200 sticky top-0">
-          <tr>
-            <th className="p-4 font-bold text-slate-900">Contributor</th>
-            <th className="p-4 font-bold text-slate-900">Email</th>
-            <th className="p-4 font-bold text-slate-900">Experience</th>
-            <th className="p-4 font-bold text-slate-900">Status</th>
-            <th className="p-4 font-bold text-slate-900 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {filteredApps?.map((app: any) => (
-            <tr key={app._id} className="hover:bg-blue-50">
-              <td className="p-4 font-medium text-slate-900">{app.contributorId.fullName}</td>
-              <td className="p-4 text-slate-600">{app.contributorId.email}</td>
-              <td className="p-4 text-slate-600">{app.contributorId.experience || '-'}</td>
-              <td className="p-4">
-                <span className={`px-2 py-1 rounded-md text-xs font-bold ${app.status === 'Approved' ? 'bg-green-100 text-green-700' : app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {app.status}
-                </span>
-              </td>
-              <td className="p-4 text-right space-x-2">
-                <button onClick={() => setSelectedApp(app)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200">Profile Details</button>
-                {app.status === 'Applied' && (
-                  <>
-                    <button onClick={() => confirmAction(app._id, 'Approved')} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Approve</button>
-                    <button onClick={() => confirmAction(app._id, 'Rejected')} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600">Reject</button>
-                  </>
-                )}
-                {app.status === 'Rejected' && (
-                  <button onClick={() => confirmAction(app._id, 'Approved')} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Approve</button>
-                )}
-              </td>
+      <div className="overflow-x-auto flex-1 border-t border-slate-200">
+        <table className="w-full text-left text-sm min-w-[650px]">
+          <thead className="bg-blue-50 border-b border-slate-200 sticky top-0">
+            <tr>
+              <th className="p-4 w-12">
+                <input type="checkbox" checked={filteredApps && filteredApps.length > 0 && selectedContributors.length === filteredApps.length} onChange={() => toggleAll(filteredApps || [])} className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" />
+              </th>
+              <th className="p-4 font-bold text-slate-900">Contributor</th>
+              <th className="p-4 font-bold text-slate-900">Email</th>
+              <th className="p-4 font-bold text-slate-900">Experience</th>
+              <th className="p-4 font-bold text-slate-900">Status</th>
+              <th className="p-4 font-bold text-slate-900 text-right">Actions</th>
             </tr>
-          ))}
-          {filteredApps?.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-slate-500">No applications found.</td></tr>}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filteredApps?.map((app: any) => (
+              <tr key={app._id} className="hover:bg-blue-50">
+                <td className="p-4">
+                  <input type="checkbox" checked={selectedContributors.includes(app.contributorId?._id)} onChange={() => app.contributorId?._id && toggleSelection(app.contributorId._id)} disabled={!app.contributorId} className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer disabled:opacity-50" />
+                </td>
+                <td className="p-4 font-medium text-slate-900">{app.contributorId?.fullName || <span className="text-slate-400 italic">Deleted User</span>}</td>
+                <td className="p-4 text-slate-600">{app.contributorId?.email || 'N/A'}</td>
+                <td className="p-4 text-slate-600">{app.contributorId?.experience || '-'}</td>
+                <td className="p-4">
+                  <span className={`px-2 py-1 rounded-md text-xs font-bold ${app.status === 'Approved' ? 'bg-green-100 text-green-700' : app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {app.status}
+                  </span>
+                </td>
+                <td className="p-4 text-right space-x-2">
+                  <button onClick={() => setSelectedApp(app)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200">Profile Details</button>
+                  {app.status === 'Applied' && (
+                    <>
+                      <button onClick={() => confirmAction(app._id, 'Approved')} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Approve</button>
+                      <button onClick={() => confirmAction(app._id, 'Rejected')} className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600">Reject</button>
+                    </>
+                  )}
+                  {app.status === 'Rejected' && (
+                    <button onClick={() => confirmAction(app._id, 'Approved')} className="px-3 py-1 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600">Approve</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {filteredApps?.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-slate-500">No applications found.</td></tr>}
+          </tbody>
+        </table>
+      </div>
       <Modal {...modalConfig} />
 
       {/* Profile Details Modal */}
@@ -1616,15 +1679,19 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
           onClose={() => setSelectedApp(null)}
         >
           <div className="space-y-6 text-sm text-slate-700">
-            <div>
-              <h4 className="font-bold text-slate-900 mb-2 border-b border-slate-200 pb-1">Registration Details</h4>
-              <p><strong>Name:</strong> {selectedApp.contributorId.fullName}</p>
-              <p><strong>Email:</strong> {selectedApp.contributorId.email}</p>
-              <p><strong>Phone:</strong> {selectedApp.contributorId.phone || 'N/A'}</p>
-              <p><strong>Country:</strong> {COUNTRIES.find(c => c.code === selectedApp.contributorId.country)?.name || selectedApp.contributorId.country || 'N/A'}</p>
-              <p><strong>Native Language:</strong> {selectedApp.contributorId.nativeLanguage || 'N/A'}</p>
-              <p><strong>Experience:</strong> {selectedApp.contributorId.experience || 'N/A'}</p>
-            </div>
+            {selectedApp.contributorId ? (
+              <div>
+                <h4 className="font-bold text-slate-900 mb-2 border-b border-slate-200 pb-1">Registration Details</h4>
+                <p><strong>Name:</strong> {selectedApp.contributorId.fullName}</p>
+                <p><strong>Email:</strong> {selectedApp.contributorId.email}</p>
+                <p><strong>Phone:</strong> {selectedApp.contributorId.phone || 'N/A'}</p>
+                <p><strong>Country:</strong> {COUNTRIES.find(c => c.code === selectedApp.contributorId.country)?.name || selectedApp.contributorId.country || 'N/A'}</p>
+                <p><strong>Native Language:</strong> {selectedApp.contributorId.nativeLanguage || 'N/A'}</p>
+                <p><strong>Experience:</strong> {selectedApp.contributorId.experience || 'N/A'}</p>
+              </div>
+            ) : (
+              <p className="text-slate-400 italic">This user record was removed from the platform.</p>
+            )}
             {selectedApp.formData && (
               <div>
                 <h4 className="font-bold text-slate-900 mb-2 border-b border-slate-200 pb-1">Application Form Data</h4>
@@ -1638,6 +1705,44 @@ function ProjectApplications({ projectId, token, isEgocentric }: { projectId: st
           </div>
         </Modal>
       )}
+      {/* Send Email/Notification Modal */}
+      {notifyModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                {notifyModal.type === 'email' ? <Mail className="w-5 h-5 text-indigo-600" /> : <MessageSquare className="w-5 h-5 text-purple-600" />}
+                Send {notifyModal.type === 'email' ? 'Email' : 'In-App Notification'}
+              </h3>
+              <button onClick={() => setNotifyModal(prev => ({...prev, isOpen: false}))} className="text-slate-400 hover:text-slate-600">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4">
+              <p className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100 flex items-center gap-2">
+                Sending to <strong>{selectedContributors.length}</strong> selected contributor(s)
+              </p>
+              {notifyModal.type === 'email' && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Subject</label>
+                  <input type="text" value={notifyModal.subject} onChange={e => setNotifyModal({...notifyModal, subject: e.target.value})} className="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter email subject" />
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Message</label>
+                <textarea value={notifyModal.message} onChange={e => setNotifyModal({...notifyModal, message: e.target.value})} rows={6} className="w-full border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder={`Enter ${notifyModal.type} message...`}></textarea>
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+              <button onClick={() => setNotifyModal(prev => ({...prev, isOpen: false}))} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+              <button onClick={() => sendNotificationMutation.mutate()} disabled={sendNotificationMutation.isPending || !notifyModal.message || (notifyModal.type === 'email' && !notifyModal.subject)} className={`px-6 py-2.5 text-sm font-bold text-white rounded-xl disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm ${notifyModal.type === 'email' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'}`}>
+                {sendNotificationMutation.isPending ? 'Sending...' : (notifyModal.type === 'email' ? 'Send Email' : 'Send Notification')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
@@ -1799,7 +1904,7 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
   const maxAmount = payRate ? parseInt(payRate.replace(/\D/g, '')) || Infinity : Infinity;
   const isAmountValid = amount === '' || Number(amount) <= maxAmount;
 
-  const { data: subs } = useQuery({ queryKey: ['pm-submissions', projectId], queryFn: async () => (await fetch(`/api/submissions/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.submissions || []), staleTime: 60 * 1000 });
+  const { data: apps } = useQuery({ queryKey: ['pm-applications', projectId], queryFn: async () => (await fetch(`/api/applications/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.applications || []), staleTime: 60 * 1000 });
   const { data: payments } = useQuery({ queryKey: ['pm-payments', projectId], queryFn: async () => (await fetch(`/api/payments/project/${projectId}`, { headers: { 'Authorization': `Bearer ${token}` } })).json().then(d => d.payments || []), staleTime: 60 * 1000 });
 
   const createPayment = useMutation({
@@ -1821,7 +1926,7 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pm-payments'] })
   });
 
-  const completedSubs = subs?.filter((s: any) => s.status === 'Completed' && s.contributorId) || [];
+  const approvedApps = apps?.filter((a: any) => a.status === 'Approved' && a.contributorId) || [];
 
   return (
     <div className="flex flex-col h-full lg:flex-row">
@@ -1832,9 +1937,9 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
         </div>
         <div className="space-y-4">
           <select value={contributorId} onChange={e => setContributorId(e.target.value)} disabled={!!targetContributorId} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm disabled:opacity-50">
-            <option value="">Select Contributor (Completed only)</option>
-            {completedSubs.map((s: any) => (
-              <option key={s.contributorId._id} value={s.contributorId._id}>{s.contributorId.fullName} ({s.contributorId.email})</option>
+            <option value="">Select Contributor (Approved only)</option>
+            {approvedApps.map((a: any) => (
+              <option key={a.contributorId._id} value={a.contributorId._id}>{a.contributorId.fullName} ({a.contributorId.email})</option>
             ))}
           </select>
           <div>
@@ -1852,57 +1957,59 @@ function ProjectPayments({ projectId, token, payRate, targetContributorId }: { p
 
       <div className="flex-1 p-6 overflow-y-auto">
         <h4 className="font-bold text-slate-900 mb-4">Payment Records</h4>
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 text-slate-500">
-            <tr>
-              <th className="pb-3">Contributor</th>
-              <th className="pb-3">UPI ID</th>
-              <th className="pb-3">Amount</th>
-              <th className="pb-3">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {payments?.filter((p: any) => p.contributorId).map((p: any) => (
-              <tr key={p._id}>
-                <td className="py-3 font-medium">{p.contributorId.fullName}</td>
-                <td className="py-3 font-mono text-xs">{p.contributorId.upiId || 'Not set'}</td>
-                <td className="py-3 font-bold text-slate-900">₹{p.amount}</td>
-                <td className="py-3">
-                  <select
-                    value={pendingPayment?.id === p._id ? pendingPayment.status : p.status}
-                    onChange={e => {
-                      const newStatus = e.target.value;
-                      setPendingPayment({ id: p._id, status: newStatus });
-                      setModalConfig(prev => ({
-                        ...prev,
-                        isOpen: true,
-                        title: 'Confirm Status Change',
-                        message: `Are you sure you want to change the payment status for ${p.contributorId.fullName} to ${newStatus}?`,
-                        type: 'confirm',
-                        confirmText: 'Yes, Change Status',
-                        variant: 'warning',
-                        onConfirm: () => {
-                          updatePaymentStatus.mutate({ id: p._id, newStatus });
-                          setPendingPayment(null);
-                        },
-                        onClose: () => {
-                          setPendingPayment(null);
-                          setModalConfig(prev => ({ ...prev, isOpen: false }));
-                        }
-                      }));
-                    }}
-                    className={`text-xs font-bold px-2 py-1 rounded-md border-0 outline-none ${p.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Paid">Paid</option>
-                  </select>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[500px]">
+            <thead className="border-b border-slate-200 text-slate-500">
+              <tr>
+                <th className="pb-3">Contributor</th>
+                <th className="pb-3">UPI ID</th>
+                <th className="pb-3">Amount</th>
+                <th className="pb-3">Status</th>
               </tr>
-            ))}
-            {payments?.length === 0 && <tr><td colSpan={4} className="py-8 text-center text-slate-500">No payment records yet.</td></tr>}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {payments?.filter((p: any) => p.contributorId).map((p: any) => (
+                <tr key={p._id}>
+                  <td className="py-3 font-medium">{p.contributorId.fullName}</td>
+                  <td className="py-3 font-mono text-xs">{p.contributorId.upiId || 'Not set'}</td>
+                  <td className="py-3 font-bold text-slate-900">₹{p.amount}</td>
+                  <td className="py-3">
+                    <select
+                      value={pendingPayment?.id === p._id ? pendingPayment.status : p.status}
+                      onChange={e => {
+                        const newStatus = e.target.value;
+                        setPendingPayment({ id: p._id, status: newStatus });
+                        setModalConfig(prev => ({
+                          ...prev,
+                          isOpen: true,
+                          title: 'Confirm Status Change',
+                          message: `Are you sure you want to change the payment status for ${p.contributorId.fullName} to ${newStatus}?`,
+                          type: 'confirm',
+                          confirmText: 'Yes, Change Status',
+                          variant: 'warning',
+                          onConfirm: () => {
+                            updatePaymentStatus.mutate({ id: p._id, newStatus });
+                            setPendingPayment(null);
+                          },
+                          onClose: () => {
+                            setPendingPayment(null);
+                            setModalConfig(prev => ({ ...prev, isOpen: false }));
+                          }
+                        }));
+                      }}
+                      className={`text-xs font-bold px-2 py-1 rounded-md border-0 outline-none ${p.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Paid">Paid</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+              {payments?.length === 0 && <tr><td colSpan={4} className="py-8 text-center text-slate-500">No payment records yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
       <Modal {...modalConfig} />
     </div>
@@ -1963,7 +2070,7 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
   if (selectedUser) {
     const selectedApp = apps?.find((a: any) => a.contributorId?._id === selectedUser._id);
     return (
-      <div className="flex h-full flex-col md:flex-row">
+      <div className="flex h-full flex-col md:flex-row flex-1 min-h-0">
         <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 overflow-y-auto bg-slate-50 p-6 h-[40vh] md:h-full">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-slate-900">Profile Details</h3>
@@ -2048,7 +2155,7 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
   });
 
   return (
-    <div className="p-4 h-full flex flex-col">
+    <div className="p-4 h-full flex flex-col flex-1 min-h-0">
       <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200 shrink-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex gap-4">
@@ -2084,19 +2191,23 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-1">
+      <div className="flex-1 overflow-y-auto space-y-1 pb-8 min-h-0">
         {filteredApps?.map((app: any) => {
-          const hasUnread = unreadData?.unreadSenderIds?.includes(app.contributorId._id);
+          const hasUnread = app.contributorId && unreadData?.unreadSenderIds?.includes(app.contributorId._id);
+          const fullName = app.contributorId?.fullName || 'Deleted User';
+          const email = app.contributorId?.email || 'N/A';
+          const initial = (fullName.charAt(0) || '?').toUpperCase();
           return (
             <button
-              key={app.contributorId._id}
-              onClick={() => setSelectedUser(app.contributorId)}
-              className="w-full flex items-center justify-between py-2 px-3 bg-white border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group"
+              key={app.contributorId?._id || app._id}
+              onClick={() => app.contributorId && setSelectedUser(app.contributorId)}
+              disabled={!app.contributorId}
+              className="w-full flex items-center justify-between py-2 px-3 bg-white border border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="text-left flex items-center gap-3">
                 <div className="relative shrink-0">
                   <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-xs group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                    {app.contributorId.fullName.charAt(0).toUpperCase()}
+                    {initial}
                   </div>
                   {hasUnread && (
                     <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 border border-white rounded-full animate-pulse"></span>
@@ -2104,9 +2215,9 @@ function ProjectMessages({ projectId, projectName, token, currentUserId, targetC
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-slate-900 truncate">
-                    {app.contributorId.fullName}
+                    {fullName}
                   </p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">{app.contributorId.email}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">{email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">

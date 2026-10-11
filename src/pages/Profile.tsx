@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocation, Link } from 'react-router-dom';
-import { Briefcase, CreditCard, Users, CheckCircle, Clock, Search, ChevronRight, Share2, Copy, MessageSquare, Bell, CheckCircle2, Calendar } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { Briefcase, CreditCard, Users, CheckCircle, Clock, Search, ChevronRight, Share2, Copy, MessageSquare, Bell, CheckCircle2, Calendar, Info } from 'lucide-react';
 import SEO from '../components/SEO';
 import ProjectChat from '../components/ProjectChat';
 import FormattedText from '../components/FormattedText';
@@ -56,6 +56,7 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const [token, setToken] = useState(localStorage.getItem('token'));
   const location = useLocation();
+  const navigate = useNavigate();
   const getInitialTab = () => {
     if (location.hash) {
       const hashTab = location.hash.replace('#', '');
@@ -392,8 +393,8 @@ export default function Profile() {
     const selectedDialCode = COUNTRIES.find(c => c.code === profileFormData.country)?.dial_code || '';
     const cleanPhone = profileFormData.phone.replace(/\D/g, '');
     
-    if (cleanPhone.length !== 10) {
-      showModal('Error', 'Phone number is invalid. Please enter exactly 10 digits.', 'error');
+    if (cleanPhone.length < 6 || cleanPhone.length > 15) {
+      showModal('Error', 'Phone number is invalid. Please enter a valid number (6-15 digits).', 'error');
       return;
     }
     
@@ -579,64 +580,101 @@ export default function Profile() {
   };
 
   const renderProjectAction = (project: any, status: string) => {
+    const app = myApplications?.find((a: any) => a?.projectId?._id === project._id);
+    const isEgocentricIndividual = project.isEgocentric && app?.formData?.contributorType === 'individual';
+
+    if (isEgocentricIndividual && status === 'Approved' && !app?.onboardingCompleted) {
+      return (
+        <button onClick={() => navigate(`/onboarding/${app._id}`)} className="px-6 py-3 bg-purple-600 text-white font-bold rounded-xl transition-colors w-full sm:w-auto shadow-lg shadow-purple-600/30 animate-pulse hover:bg-purple-700 flex items-center justify-center gap-2">
+          Action Required: Complete Onboarding →
+        </button>
+      );
+    }
+
+    let actionNode = null;
+
     if (status === 'Approved') {
       const submission = getProjectSubmission(project._id);
       const subStatus = submission?.status;
       let btnText = 'Submit Work';
       let btnColor = 'bg-green-600 hover:bg-green-700 shadow-green-600/30';
-      if (project.isEgocentric && (!subStatus || subStatus === 'Submit Work')) {
-        btnText = 'Recording Instructions';
-        btnColor = 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30';
-      } else if (subStatus === 'Rework Required') {
-        btnText = 'Rework Required';
-        btnColor = 'bg-red-600 hover:bg-red-700 shadow-red-600/30';
-      } else if (subStatus === 'Completed') {
-        btnText = 'Completed';
-        btnColor = 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30';
-      } else if (subStatus === 'Submitted') {
-        btnText = 'Submitted';
-        btnColor = 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30';
-      } else if (subStatus === 'Under Review') {
-        btnText = 'Under Review';
-        btnColor = 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/30';
+      const isIndividual = app?.formData?.contributorType === 'individual' || !app?.formData?.contributorType;
+      
+      if (project.isEgocentric && (!subStatus || subStatus === 'Submit Work') && isIndividual) {
+        actionNode = (
+          <>
+            <button onClick={() => {
+              const application = myApplications?.find((a: any) => a?.projectId?._id === project._id);
+              if (application) navigate(`/onboarding/${application._id}`);
+            }} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto whitespace-nowrap flex items-center justify-center">
+              Recording Instructions
+            </button>
+            {project.telegramLink && (
+              <a href={project.telegramLink} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors shadow-md flex items-center justify-center gap-2 whitespace-nowrap">
+                <MessageSquare className="w-4 h-4" /> Live Support & Instructions
+              </a>
+            )}
+            <button onClick={() => {
+              const application = myApplications?.find((a: any) => a?.projectId?._id === project._id);
+              setSelectedChatProject(application || null);
+              setActiveTab('messages');
+              window.location.hash = 'messages';
+            }} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-md w-full sm:w-auto whitespace-nowrap">
+              Message Project Manager
+            </button>
+          </>
+        );
+      } else {
+        if (project.isEgocentric && (!subStatus || subStatus === 'Submit Work') && !isIndividual) {
+          btnText = 'Next Step';
+          btnColor = 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30';
+        } else if (subStatus === 'Rework Required') {
+          btnText = 'Rework Required';
+          btnColor = 'bg-red-600 hover:bg-red-700 shadow-red-600/30';
+        } else if (subStatus === 'Completed') {
+          btnText = 'Completed';
+          btnColor = 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30';
+        } else if (subStatus === 'Submitted') {
+          btnText = 'Submitted';
+          btnColor = 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/30';
+        } else if (subStatus === 'Under Review') {
+          btnText = 'Under Review';
+          btnColor = 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/30';
+        }
+
+        actionNode = (
+          <button onClick={() => {
+            if (project.isEgocentric && btnText === 'Next Step') {
+              const application = myApplications?.find((a: any) => a?.projectId?._id === project._id);
+              showModal(
+                'Next Steps for Your Application',
+                'Message the project manager to discuss all details of the project, pay rates, and NDA to sign. After that you will get an access code to record.',
+                'info',
+                (
+                  <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                    <button onClick={() => {
+                      setSelectedChatProject(application || null);
+                      setModalConfig(prev => ({ ...prev, isOpen: false }));
+                      setActiveTab('messages');
+                      window.location.hash = 'messages';
+                    }} className="flex-1 px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                      Message Project Manager
+                    </button>
+                  </div>
+                )
+              );
+            } else {
+              setActiveTab('my_projects'); window.location.hash = 'my_projects';
+            }
+          }} className={`px-6 py-3 text-white font-bold rounded-xl transition-colors w-full sm:w-auto shadow-md ${btnColor}`}>
+            {btnText}
+          </button>
+        );
       }
-      return (
-        <button onClick={() => {
-          if (project.isEgocentric && btnText === 'Recording Instructions') {
-            showModal(
-              'To start recording and earning, you will need a unique access code.',
-              'Please join the official Project Telegram Group to receive your instructions and get your access code directly from the Project Manager.',
-              'info',
-              (
-                <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                  {project.telegramLink && (
-                    <a href={project.telegramLink} target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-3 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors">
-                      Join Telegram Group
-                    </a>
-                  )}
-                  <button onClick={() => {
-                    const app = myApplications?.find((a: any) => a?.projectId?._id === project._id);
-                    setSelectedChatProject(app || null);
-                    setModalConfig(prev => ({ ...prev, isOpen: false }));
-                    setActiveTab('messages');
-                    window.location.hash = 'messages';
-                  }} className="flex-1 px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
-                    Message Project Manager
-                  </button>
-                </div>
-              )
-            );
-          } else {
-            setActiveTab('my_projects'); window.location.hash = 'my_projects';
-          }
-        }} className={`px-6 py-3 text-white font-bold rounded-xl transition-colors w-full sm:w-auto shadow-md ${btnColor}`}>
-          {btnText}
-        </button>
-      );
     } else if (status) {
-      return <span className="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl">{status}</span>;
+      actionNode = <span className="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl">{status}</span>;
     } else {
-      return (
+      actionNode = (
         <button onClick={() => {
           if (project.termsAndConditions) {
             setConsentProject(project);
@@ -649,6 +687,27 @@ export default function Profile() {
         </button>
       );
     }
+
+    if (isEgocentricIndividual && status === 'Approved' && app?.onboardingCompleted) {
+      return (
+        <div className="flex flex-col w-full gap-4 mt-4 sm:mt-0">
+          <div className="w-full bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm">
+            <Info className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
+            <p className="font-medium text-sm">
+              You can Now start recording on Capture app and can see recorded hours in App
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row flex-wrap sm:justify-end gap-4 w-full">
+            <button disabled className="px-6 py-3 bg-green-100 text-green-700 font-bold rounded-xl border border-green-200 cursor-default flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
+              Onboarding Complete ✓
+            </button>
+            {actionNode}
+          </div>
+        </div>
+      );
+    }
+
+    return actionNode;
   };
 
   const currentDay = new Date().getDate();
@@ -748,6 +807,9 @@ export default function Profile() {
                       Work submitted <strong className="text-slate-900 font-bold">1st - 15th</strong> is processed and paid between the <strong className="text-slate-900 font-bold">16th - 22nd</strong>. <br className="hidden md:block"/>
                       Work submitted <strong className="text-slate-900 font-bold">16th - 31st</strong> is processed and paid between the <strong className="text-slate-900 font-bold">1st - 7th</strong> of the following month.
                     </p>
+                    <p className="text-sm font-bold text-sky-800 mt-2 inline-block">
+                      Pay rate for individual contributors only: 300 INR /hr (3$ /hr)
+                    </p>
                   </div>
                 </div>
 
@@ -768,26 +830,29 @@ export default function Profile() {
                       </div>
                     </div>
 
-                    <div className="flex-1 flex flex-col justify-center relative z-20 py-2">
-                      <div className="flex items-start justify-between mb-3 gap-4">
-                        <h3 className="text-2xl font-display font-bold text-white">Egocentric Video Contributors ( Remote)</h3>
-                        <span className="font-black text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-xl text-sm shrink-0 mt-1">High Pay</span>
+                    <div className="flex-1 flex flex-col justify-between relative z-20 py-2">
+                      <div>
+                        <div className="flex items-start justify-between mb-3 gap-4">
+                          <h3 className="text-2xl font-display font-bold text-white">Egocentric Video Contributors ( Remote)</h3>
+                          <span className="font-black text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-xl text-sm shrink-0 mt-1 whitespace-nowrap">
+                            {(availableProjects?.find((p: any) => p.isEgocentric)?.payRate) || 'High Pay'}
+                          </span>
+                        </div>
+                        <p className="text-slate-300 text-sm mb-5 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
+                        <div className="flex flex-wrap gap-5 text-sm font-medium text-slate-300 mb-2">
+                          <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Smartphone & Head strap</span>
+                          <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> No experience required</span>
+                        </div>
                       </div>
-                      <p className="text-slate-300 text-sm mb-5 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
-                      <div className="flex flex-wrap gap-5 text-sm font-medium text-slate-300 mb-2">
-                        <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Smartphone & Head strap</span>
-                        <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> No experience required</span>
+                      <div className="mt-6 flex flex-wrap gap-4 items-center justify-start xl:justify-end w-full">
+                        {(() => {
+                          const egoProjectObj = availableProjects?.find((p: any) => p.isEgocentric);
+                          if (egoProjectObj) {
+                            return renderProjectAction(egoProjectObj, getApplicationStatus(egoProjectObj._id));
+                          }
+                          return <button disabled className="px-6 py-3 bg-slate-400 text-white font-bold rounded-xl">Loading...</button>;
+                        })()}
                       </div>
-                    </div>
-
-                    <div className="shrink-0 flex items-center justify-center sm:items-start pt-2 relative z-20">
-                      {(() => {
-                        const egoProjectObj = availableProjects?.find((p: any) => p.isEgocentric);
-                        if (egoProjectObj) {
-                          return renderProjectAction(egoProjectObj, getApplicationStatus(egoProjectObj._id));
-                        }
-                        return <button disabled className="px-6 py-3 bg-slate-400 text-white font-bold rounded-xl">Loading...</button>;
-                      })()}
                     </div>
                   </div>
                   {availableProjects?.map((project: any) => {
@@ -890,26 +955,29 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col justify-center relative z-20 py-2">
-                    <div className="flex items-start justify-between mb-3 gap-4">
-                      <h3 className="text-2xl font-display font-bold text-white">Egocentric Video Contributors ( Remote)</h3>
-                      <span className="font-black text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-xl text-sm shrink-0 mt-1">High Pay</span>
+                  <div className="flex-1 flex flex-col justify-between relative z-20 py-2">
+                    <div>
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-3 sm:gap-4">
+                        <h3 className="text-xl sm:text-2xl font-display font-bold text-white leading-tight">Egocentric Video Contributors (Remote)</h3>
+                        <span className="font-black text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-xl text-sm shrink-0 mt-1 whitespace-nowrap">
+                          {(availableProjects?.find((p: any) => p.isEgocentric)?.payRate) || 'High Pay'}
+                        </span>
+                      </div>
+                      <p className="text-slate-300 text-sm mb-5 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
+                      <div className="flex flex-wrap gap-5 text-sm font-medium text-slate-300 mb-2">
+                        <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Smartphone & Head strap</span>
+                        <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> No experience required</span>
+                      </div>
                     </div>
-                    <p className="text-slate-300 text-sm mb-5 leading-relaxed">Record POV videos of everyday household, commercial, or industrial tasks to train AI and robotics.</p>
-                    <div className="flex flex-wrap gap-5 text-sm font-medium text-slate-300 mb-2">
-                      <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Smartphone & Head strap</span>
-                      <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> No experience required</span>
+                    <div className="mt-6 flex flex-wrap gap-4 items-center justify-start xl:justify-end w-full">
+                      {(() => {
+                        const egoProjectObj = availableProjects?.find((p: any) => p.isEgocentric);
+                        if (egoProjectObj) {
+                          return renderProjectAction(egoProjectObj, getApplicationStatus(egoProjectObj._id));
+                        }
+                        return <button disabled className="px-6 py-3 bg-slate-400 text-white font-bold rounded-xl">Loading...</button>;
+                      })()}
                     </div>
-                  </div>
-
-                  <div className="shrink-0 flex items-center justify-center sm:items-start pt-2 relative z-20">
-                    {(() => {
-                      const egoProjectObj = availableProjects?.find((p: any) => p.isEgocentric);
-                      if (egoProjectObj) {
-                        return renderProjectAction(egoProjectObj, getApplicationStatus(egoProjectObj._id));
-                      }
-                      return <button disabled className="px-6 py-3 bg-slate-400 text-white font-bold rounded-xl">Loading...</button>;
-                    })()}
                   </div>
                 </div>
 
@@ -920,9 +988,9 @@ export default function Profile() {
                     <div key={project._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-6">
                       <div className="flex flex-col sm:flex-row gap-6">
                         <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-xl font-bold text-slate-900">{project.title}</h3>
-                            <span className="font-black text-green-600 bg-green-50 px-3 py-1 rounded-full">{project.payRate}</span>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2 sm:gap-4">
+                            <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">{project.title}</h3>
+                            <span className="self-start sm:self-auto font-black text-green-600 bg-green-50 px-3 py-1 rounded-full whitespace-nowrap text-sm">{project.payRate}</span>
                           </div>
                           <p className={`text-slate-600 text-sm mb-4 ${expandedAvailableProject !== project._id ? 'line-clamp-2' : ''}`}>
                             <FormattedText text={project.shortDescription} />
@@ -946,7 +1014,7 @@ export default function Profile() {
                             {expandedAvailableProject === project._id ? 'Hide Details' : 'View Details'}
                           </button>
                         </div>
-                        <div className="shrink-0 flex items-center justify-center sm:items-start pt-2">
+                        <div className="w-full sm:w-auto sm:shrink-0 flex flex-col sm:items-start pt-2">
                           {renderProjectAction(project, status)}
                         </div>
                       </div>
@@ -1034,43 +1102,78 @@ export default function Profile() {
                             </div>
                           )}
 
-                          {app.projectId.telegramLink && (
-                            <div className="mb-6">
-                              <a href={app.projectId.telegramLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors shadow-sm">
-                                <MessageSquare className="w-4 h-4" /> Live Support & Instructions
-                              </a>
-                            </div>
-                          )}
+
 
                           {app.status === 'Approved' ? (
                             <>
                               {app.projectId.isEgocentric ? (
-                                <div className="mt-4 pt-4 border-t border-slate-100">
-                                  <button onClick={() => showModal(
-                                    'To start recording and earning, you will need a unique access code.',
-                                    'Please join the official Project Telegram Group to receive your instructions and get your access code directly from the Project Manager.',
-                                    'info',
-                                    (
-                                      <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                                        {app.projectId.telegramLink && (
-                                          <a href={app.projectId.telegramLink} target="_blank" rel="noopener noreferrer" className="flex-1 text-center px-4 py-3 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors">
-                                            Join Telegram Group
-                                          </a>
-                                        )}
-                                        <button onClick={() => {
-                                          setSelectedChatProject(app);
-                                          setModalConfig(prev => ({ ...prev, isOpen: false }));
-                                          setActiveTab('messages');
-                                          window.location.hash = 'messages';
-                                        }} className="flex-1 px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
-                                          Message Project Manager
-                                        </button>
-                                      </div>
-                                    )
-                                  )} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto">
-                                    Recording Instructions
-                                  </button>
+                                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col w-full gap-4">
+                                  {app.formData?.contributorType === 'individual' && app.onboardingCompleted && (
+                                    <div className="w-full bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm">
+                                      <Info className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
+                                      <p className="font-medium text-sm">
+                                        You can Now start recording on Capture app and can see recorded hours in App
+                                      </p>
+                                    </div>
+                                  )}
+                                  <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full justify-start sm:justify-end items-stretch sm:items-center">
+                                    {app.formData?.contributorType === 'individual' && !app.onboardingCompleted && (
+                                      <button onClick={() => navigate(`/onboarding/${app._id}`)} className="px-6 py-4 bg-purple-600 text-white font-bold rounded-xl transition-colors w-full sm:w-auto shadow-lg shadow-purple-600/30 animate-pulse hover:bg-purple-700 flex items-center justify-center gap-2 text-lg">
+                                        Action Required: Complete Onboarding →
+                                      </button>
+                                    )}
+                                  {app.formData?.contributorType === 'individual' && app.onboardingCompleted && (
+                                    <button disabled className="px-6 py-3 bg-green-100 text-green-700 font-bold rounded-xl border border-green-200 cursor-default flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
+                                      Onboarding Complete ✓
+                                    </button>
+                                  )}
+                                  {(!app.formData?.contributorType || app.formData.contributorType === 'individual') && app.onboardingCompleted && (
+                                    <>
+                                      <button onClick={() => navigate(`/onboarding/${app._id}`)} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto whitespace-nowrap flex items-center justify-center">
+                                        Recording Instructions
+                                      </button>
+                                      <a href="https://drive.google.com/file/d/1eMptO2Tg66-2jcfmV0tJsoFmht7-0HCD/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-md flex items-center justify-center whitespace-nowrap">
+                                        SOW & Detailed Guidelines
+                                      </a>
+                                      {app.projectId.telegramLink && (
+                                        <a href={app.projectId.telegramLink} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-[#0088cc] text-white font-bold rounded-xl hover:bg-[#0077b3] transition-colors shadow-md flex items-center justify-center gap-2 whitespace-nowrap">
+                                          <MessageSquare className="w-4 h-4" /> Live Support & Instructions
+                                        </a>
+                                      )}
+                                      <button onClick={() => {
+                                        setSelectedChatProject(app);
+                                        setActiveTab('messages');
+                                        window.location.hash = 'messages';
+                                      }} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-md w-full sm:w-auto whitespace-nowrap">
+                                        Message Project Manager
+                                      </button>
+                                    </>
+                                  )}
+                                  {(app.formData?.contributorType && app.formData.contributorType !== 'individual') && (
+                                    <button onClick={() => {
+                                      showModal(
+                                        'Next Steps for Your Application',
+                                        'Message the project manager to discuss all details of the project, pay rates, and NDA to sign. After that you will get an access code to record.',
+                                        'info',
+                                        (
+                                          <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                                            <button onClick={() => {
+                                              setSelectedChatProject(app);
+                                              setModalConfig(prev => ({ ...prev, isOpen: false }));
+                                              setActiveTab('messages');
+                                              window.location.hash = 'messages';
+                                            }} className="flex-1 px-4 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                                              Message Project Manager
+                                            </button>
+                                          </div>
+                                        )
+                                      );
+                                    }} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-md w-full sm:w-auto">
+                                      Next Step
+                                    </button>
+                                  )}
                                 </div>
+                              </div>
                               ) : (
                                 <>
                                   <div className="flex items-center justify-between mb-4">
@@ -1228,7 +1331,7 @@ export default function Profile() {
                           className={`p-4 rounded-xl border transition-colors ${n.isRead ? 'bg-blue-50 border-slate-100 opacity-70' : 'bg-blue-50 border-blue-200 cursor-pointer hover:bg-blue-100'}`}
                         >
                           <div className="flex justify-between items-start gap-4">
-                            <p className="text-slate-800 flex-1">{renderFormattedText(n.message)}</p>
+                            <p className="text-slate-800 flex-1 whitespace-pre-wrap">{renderFormattedText(n.message)}</p>
                             {!n.isRead && <span className="shrink-0 text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded-full">New</span>}
                           </div>
                           <p className="text-xs text-slate-500 mt-2">{new Date(n.createdAt).toLocaleString()}</p>

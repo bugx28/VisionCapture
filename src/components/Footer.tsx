@@ -73,10 +73,10 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
           <p>© {new Date().getFullYear()} Vision Capture. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">Ethical Data Guidelines</a>
+          <div className="flex flex-wrap gap-4 sm:gap-6">
+            <Link to="/legal#privacy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-slate-900 transition-colors">Privacy Policy</Link>
+            <Link to="/legal#terms" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-slate-900 transition-colors">Terms of Service</Link>
+            <Link to="/legal#ethics" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-slate-900 transition-colors">Ethical Data Guidelines</Link>
           </div>
         </div>
       </div>

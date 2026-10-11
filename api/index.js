@@ -20,6 +20,7 @@ import Payment from '../models/Payment.js';
 import ProjectMessage from '../models/ProjectMessage.js';
 import Notification from '../models/Notification.js';
 import ProjectTerms from '../models/ProjectTerms.js';
+import OTP from '../models/OTP.js';
 import crypto from 'crypto';
 import { waitUntil } from '@vercel/functions';
 import multer from 'multer';
@@ -41,14 +42,44 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.warn('CRITICAL SECURITY WARNING: JWT_SECRET environment variable is missing in production!');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_please_change_in_production';
 
 app.use(cors());
 app.use(compression());
 app.use(express.json());
 
-// In-memory OTP store (For production, consider Redis or MongoDB for distributed persistence)
-const otpStore = new Map();
+// Lightweight sliding-window rate limiters
+const rateLimitMap = new Map();
+const createRateLimiter = (windowMs, maxRequests, message) => {
+  return (req, res, next) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress) || 'unknown';
+    const now = Date.now();
+    const key = `${req.baseUrl || req.path}:${ip}`;
+    const record = rateLimitMap.get(key) || { count: 0, resetTime: now + windowMs };
+
+    if (now > record.resetTime) {
+      record.count = 1;
+      record.resetTime = now + windowMs;
+    } else {
+      record.count += 1;
+    }
+    rateLimitMap.set(key, record);
+
+    if (record.count > maxRequests) {
+      return res.status(429).json({ error: message || 'Too many requests. Please try again later.' });
+    }
+    next();
+  };
+};
+
+const authRateLimiter = createRateLimiter(15 * 60 * 1000, 20, 'Too many login attempts. Please wait 15 minutes.');
+const otpRateLimiter = createRateLimiter(15 * 60 * 1000, 6, 'Too many OTP requests. Please wait 15 minutes.');
+const contactRateLimiter = createRateLimiter(15 * 60 * 1000, 8, 'Too many submissions. Please wait 15 minutes.');
 
 const isValidEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -64,12 +95,13 @@ const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) {
     return;
   }
-  if (!process.env.MONGODB_URI) {
-    console.warn('WARNING: MONGODB_URI is not defined in .env.');
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+  if (!mongoUri) {
+    console.warn('WARNING: Neither MONGODB_URI nor MONGO_URI is defined in environment variables.');
     return;
   }
   try {
-    cachedDb = mongoose.connect(process.env.MONGODB_URI, {
+    cachedDb = mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 5000,
       maxPoolSize: 10
     });
@@ -81,14 +113,18 @@ const connectDB = async () => {
   }
 };
 
+// Unified SMTP credentials supporting both SMTP_* and EMAIL_* conventions
+const SMTP_USER = process.env.SMTP_USER || process.env.EMAIL_USER;
+const SMTP_PASS = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
 // Nodemailer configuration
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: SMTP_USER,
+    pass: SMTP_PASS,
   },
 });
 
@@ -139,7 +175,7 @@ const authenticateUser = async (req, res, next) => {
 // PUBLIC ROUTES
 // =======================
 
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', contactRateLimiter, async (req, res) => {
   try {
     let { name, email, company, serviceType, message } = req.body;
     email = email?.toLowerCase();
@@ -150,16 +186,16 @@ app.post('/api/contact', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format.' });
     }
     await connectDB();
-    let contact;
-    if (mongoose.connection.readyState === 1) {
-      contact = new Contact({ name, email, company, serviceType, message });
-      await contact.save();
+    if (mongoose.connection.readyState < 1) {
+      throw new Error('Database connection unavailable');
     }
+    const contact = new Contact({ name, email, company, serviceType, message });
+    await contact.save();
     res.status(201).json({ success: true, message: 'Form submitted successfully.' });
 
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    if (SMTP_USER && SMTP_PASS) {
       const mailOptions = {
-        from: `"${name}" <${process.env.SMTP_USER}>`,
+        from: `"${name}" <${SMTP_USER}>`,
         replyTo: email,
         to: 'info@visioncapture.in',
         subject: `New Project Inquiry from ${name}${company ? ` at ${company}` : ''}`,
@@ -168,7 +204,9 @@ app.post('/api/contact', async (req, res) => {
       };
       const sendEmailPromise = transporter.sendMail(mailOptions).catch(console.error);
       if (typeof waitUntil === 'function') {
-        waitUntil(sendEmailPromise);
+        try {
+          waitUntil(sendEmailPromise);
+        } catch (e) {}
       }
     }
   } catch (error) {
@@ -180,7 +218,7 @@ app.post('/api/contact', async (req, res) => {
 // AUTH ROUTES
 // =======================
 
-app.post('/api/auth/send-otp', async (req, res) => {
+app.post('/api/auth/send-otp', otpRateLimiter, async (req, res) => {
   try {
     let { email, type = 'register' } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required.' });
@@ -198,14 +236,30 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(email, { otp, expires: Date.now() + 10 * 60 * 1000 }); // 10 mins
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    await OTP.findOneAndUpdate(
+      { email },
+      { otp, purpose: type, attempts: 0, expiresAt },
+      { upsert: true, returnDocument: 'after' }
+    );
+
+    if (SMTP_USER && SMTP_PASS) {
+      let subject = 'Your Registration OTP';
+      let purposeText = 'registration';
+      if (type === 'reset') {
+        subject = 'Your Password Reset OTP';
+        purposeText = 'password reset';
+      } else if (type === 'profile-update') {
+        subject = 'Your Profile Update OTP';
+        purposeText = 'profile update';
+      }
+
       await transporter.sendMail({
-        from: `"Vision Capture" <${process.env.SMTP_USER}>`,
+        from: `"Vision Capture" <${SMTP_USER}>`,
         to: email,
-        subject: 'Your Registration OTP',
-        text: `Your OTP for registration is: ${otp}`,
+        subject,
+        text: `Your OTP for ${purposeText} is: ${otp}. It is valid for 10 minutes.`,
       });
       res.json({ success: true, message: 'OTP sent successfully.' });
     } else {
@@ -224,12 +278,16 @@ app.post('/api/auth/register', async (req, res) => {
     if (!email || !isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format.' });
     if (!otherDetails.country || !otherDetails.phone) return res.status(400).json({ error: 'Country and Phone are required.' });
 
-    const storedOtpData = otpStore.get(email);
-    if (!storedOtpData || storedOtpData.otp !== otp || Date.now() > storedOtpData.expires) {
+    await connectDB();
+    const storedOtpData = await OTP.findOne({ email });
+    if (!storedOtpData || storedOtpData.otp !== otp || new Date() > storedOtpData.expiresAt || storedOtpData.attempts >= 5) {
+      if (storedOtpData) {
+        storedOtpData.attempts = (storedOtpData.attempts || 0) + 1;
+        await storedOtpData.save();
+      }
       return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
 
-    await connectDB();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate unique referral code
@@ -261,7 +319,7 @@ app.post('/api/auth/register', async (req, res) => {
       await newReferral.save();
     }
 
-    otpStore.delete(email); // clear OTP
+    await OTP.deleteOne({ email }); // clear OTP
     res.status(201).json({ success: true, message: 'Registration successful.' });
   } catch (err) {
     console.error('Register error:', err);
@@ -269,7 +327,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   try {
     let { email, password } = req.body;
     email = email?.toLowerCase();
@@ -292,7 +350,7 @@ app.post('/api/auth/login', async (req, res) => {
 // USER & MESSAGING ROUTES
 // =======================
 
-app.post('/api/auth/reset-password', async (req, res) => {
+app.post('/api/auth/reset-password', authRateLimiter, async (req, res) => {
   try {
     let { email, otp, newPassword } = req.body;
     email = email?.toLowerCase();
@@ -301,12 +359,16 @@ app.post('/api/auth/reset-password', async (req, res) => {
     }
     if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format.' });
 
-    const storedOtpData = otpStore.get(email);
-    if (!storedOtpData || storedOtpData.otp !== otp || Date.now() > storedOtpData.expires) {
+    await connectDB();
+    const storedOtpData = await OTP.findOne({ email });
+    if (!storedOtpData || storedOtpData.otp !== otp || new Date() > storedOtpData.expiresAt || storedOtpData.attempts >= 5) {
+      if (storedOtpData) {
+        storedOtpData.attempts = (storedOtpData.attempts || 0) + 1;
+        await storedOtpData.save();
+      }
       return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
 
-    await connectDB();
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
@@ -316,7 +378,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    otpStore.delete(email); // clear OTP
+    await OTP.deleteOne({ email }); // clear OTP
     res.json({ success: true, message: 'Password reset successfully.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reset password.' });
@@ -365,7 +427,7 @@ app.post('/api/admin/create-pm', authenticateAdmin, async (req, res) => {
 app.get('/api/admin/pms', authenticateAdmin, async (req, res) => {
   try {
     await connectDB();
-    const pms = await User.find({ role: 'project_manager' }).sort({ createdAt: -1 });
+    const pms = await User.find({ role: 'project_manager' }).select('-password').sort({ createdAt: -1 });
     res.json({ success: true, pms });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch Project Managers.' });
@@ -490,6 +552,14 @@ app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
     const query = { role: 'user' };
     if (req.query.country) {
       query.country = req.query.country;
+    }
+    if (req.query.search) {
+      const escapeRegex = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(escapeRegex(req.query.search), 'i');
+      query.$or = [
+        { fullName: searchRegex },
+        { email: searchRegex }
+      ];
     }
 
     const [users, total] = await Promise.all([
@@ -1000,8 +1070,12 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
 
     // Verify OTP
     if (!otp) return res.status(400).json({ error: 'OTP is required.' });
-    const storedOtpData = otpStore.get(user.email);
-    if (!storedOtpData || storedOtpData.otp !== otp || Date.now() > storedOtpData.expires) {
+    const storedOtpData = await OTP.findOne({ email: user.email.toLowerCase() });
+    if (!storedOtpData || storedOtpData.otp !== otp || new Date() > storedOtpData.expiresAt || storedOtpData.attempts >= 5) {
+      if (storedOtpData) {
+        storedOtpData.attempts = (storedOtpData.attempts || 0) + 1;
+        await storedOtpData.save();
+      }
       return res.status(400).json({ error: 'Invalid or expired OTP.' });
     }
 
@@ -1026,7 +1100,7 @@ app.put('/api/user/profile', authenticateUser, async (req, res) => {
     }
 
     await user.save();
-    otpStore.delete(user.email); // Clear OTP
+    await OTP.deleteOne({ email: user.email.toLowerCase() }); // Clear OTP
 
     res.json({ success: true });
   } catch (err) {
@@ -1103,6 +1177,22 @@ app.post('/api/applications', authenticateUser, async (req, res) => {
   }
 });
 
+// Mark onboarding as completed for an application
+app.put('/api/applications/:id/onboarded', authenticateUser, async (req, res) => {
+  try {
+    await connectDB();
+    const app = await Application.findOne({ _id: req.params.id, contributorId: req.user.id });
+    if (!app) return res.status(404).json({ error: 'Application not found' });
+    
+    app.onboardingCompleted = true;
+    await app.save();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Onboarding completion error:', err);
+    res.status(500).json({ error: 'Failed to complete onboarding' });
+  }
+});
+
 app.get('/api/applications/user', authenticateUser, async (req, res) => {
   try {
     await connectDB();
@@ -1153,6 +1243,16 @@ app.post('/api/submissions', authenticateUser, async (req, res) => {
         { new: true }
       );
       return res.status(200).json({ success: true, submission: updatedSub });
+    }
+
+    // Verify that the contributor has an approved application for this project
+    const approvedApp = await Application.findOne({
+      projectId,
+      contributorId: req.user.id,
+      status: 'Approved'
+    });
+    if (!approvedApp) {
+      return res.status(403).json({ error: 'You must have an approved application to submit work for this project.' });
     }
 
     const sub = new Submission({
@@ -1259,7 +1359,44 @@ app.put('/api/payments/:id', authenticatePM, async (req, res) => {
 app.get('/api/project-messages/:projectId', authenticateUser, async (req, res) => {
   try {
     await connectDB();
-    const msgs = await ProjectMessage.find({ projectId: req.params.projectId })
+    const query = { projectId: req.params.projectId };
+
+    // Regular contributors can ONLY access messages where they are sender or receiver
+    if (req.user.role === 'user') {
+      query.$or = [{ senderId: req.user.id }, { receiverId: req.user.id }];
+    } else if (req.query.contributorId) {
+      // PM or Admin filtering by specific contributor
+      query.$or = [{ senderId: req.query.contributorId }, { receiverId: req.query.contributorId }];
+    }
+
+    // Incremental cursor pagination using timestamp
+    if (req.query.since) {
+      const sinceDate = new Date(req.query.since);
+      if (!isNaN(sinceDate.getTime())) {
+        query.createdAt = { $gt: sinceDate };
+      }
+      const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 500);
+      const msgs = await ProjectMessage.find(query)
+        .populate('senderId', 'fullName role')
+        .populate('receiverId', 'fullName role')
+        .sort({ createdAt: 1 })
+        .limit(limit);
+      return res.json({ success: true, messages: msgs });
+    }
+
+    // Page-capped latest messages
+    if (req.query.limit) {
+      const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 500);
+      const msgs = await ProjectMessage.find(query)
+        .populate('senderId', 'fullName role')
+        .populate('receiverId', 'fullName role')
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      return res.json({ success: true, messages: msgs.reverse() });
+    }
+
+    // Default chronological fetch
+    const msgs = await ProjectMessage.find(query)
       .populate('senderId', 'fullName role')
       .populate('receiverId', 'fullName role')
       .sort({ createdAt: 1 });
@@ -1359,44 +1496,234 @@ app.post('/api/pm/notifications/send', authenticatePM, async (req, res) => {
     res.status(500).json({ error: 'Failed to send notifications' });
   }
 });
+app.get('/api/pm/visualisation-data', authenticatePM, async (req, res) => {
+  try {
+    await connectDB();
+    
+    // Global User Stats
+    const users = await User.find({ role: 'user' }).select('-password').lean();
+    
+    const countryStats = {};
+    const nativeLangStats = {};
+    const addLangStats = {};
+    const sourceStats = {};
+    const projectInterestStats = {};
+    
+    users.forEach(u => {
+      if (u.country) countryStats[u.country] = (countryStats[u.country] || 0) + 1;
+      if (u.nativeLanguage) nativeLangStats[u.nativeLanguage] = (nativeLangStats[u.nativeLanguage] || 0) + 1;
+      
+      // additionalLanguage is stored as a string in DB
+      if (u.additionalLanguage) {
+        addLangStats[u.additionalLanguage] = (addLangStats[u.additionalLanguage] || 0) + 1;
+      }
+      
+      if (u.howFoundUs) {
+        sourceStats[u.howFoundUs] = (sourceStats[u.howFoundUs] || 0) + 1;
+      }
+      
+      if (u.projectsInterestedIn && Array.isArray(u.projectsInterestedIn)) {
+        u.projectsInterestedIn.forEach(p => {
+          if (p) projectInterestStats[p] = (projectInterestStats[p] || 0) + 1;
+        });
+      }
+    });
+
+    const formatForChart = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+
+    // Egocentric Application Stats
+    const egocentricProject = await Project.findOne({ title: { $regex: /Egocentric Video/i } }).lean();
+    let egocentricStats = null;
+    
+    if (egocentricProject) {
+      // Build a quick map of userId to country
+      const userCountryMap = {};
+      users.forEach(u => {
+        if (u._id) {
+          userCountryMap[u._id.toString()] = u.country || 'Unknown';
+        }
+      });
+
+      const applications = await Application.find({ projectId: egocentricProject._id }).lean();
+      
+      const uniqueContributorsByType = {};
+      const uniqueContributorsByTypeCountry = {}; 
+      const iosSet = new Set();
+      const androidSet = new Set();
+      const uniqueContributorsByStatus = {};
+      
+      applications.forEach(app => {
+        const cId = app.contributorId ? app.contributorId.toString() : 'unknown';
+        
+        if (!uniqueContributorsByStatus[app.status]) uniqueContributorsByStatus[app.status] = new Set();
+        uniqueContributorsByStatus[app.status].add(cId);
+        
+        if (app.formData) {
+          const type = app.formData.contributorType || 'Unknown';
+          if (!uniqueContributorsByType[type]) uniqueContributorsByType[type] = new Set();
+          uniqueContributorsByType[type].add(cId);
+          
+          const country = userCountryMap[cId] || 'Unknown';
+          if (!uniqueContributorsByTypeCountry[type]) uniqueContributorsByTypeCountry[type] = {};
+          if (!uniqueContributorsByTypeCountry[type][country]) uniqueContributorsByTypeCountry[type][country] = new Set();
+          uniqueContributorsByTypeCountry[type][country].add(cId);
+          
+          const device = (app.formData.deviceName || '').toLowerCase();
+          if (device.includes('iphone')) {
+            iosSet.add(cId);
+          } else if (device) {
+            androidSet.add(cId);
+          }
+        }
+      });
+
+      const contributorTypeStats = {};
+      Object.keys(uniqueContributorsByType).forEach(type => contributorTypeStats[type] = uniqueContributorsByType[type].size);
+
+      const typeCountryStats = {};
+      Object.keys(uniqueContributorsByTypeCountry).forEach(type => {
+        typeCountryStats[type] = {};
+        Object.keys(uniqueContributorsByTypeCountry[type]).forEach(country => {
+          typeCountryStats[type][country] = uniqueContributorsByTypeCountry[type][country].size;
+        });
+      });
+      
+      const statusStats = {};
+      Object.keys(uniqueContributorsByStatus).forEach(status => statusStats[status] = uniqueContributorsByStatus[status].size);
+      
+      egocentricStats = {
+        contributorType: formatForChart(contributorTypeStats),
+        countryByType: Object.entries(typeCountryStats).map(([type, cStats]) => ({
+          type,
+          data: formatForChart(cStats)
+        })),
+        deviceStats: [
+          { name: 'iOS (iPhone)', value: iosSet.size },
+          { name: 'Android / Other', value: androidSet.size }
+        ],
+        statusStats: formatForChart(statusStats)
+      };
+    }
+
+    res.json({
+      success: true,
+      globalStats: {
+        country: formatForChart(countryStats),
+        nativeLanguage: formatForChart(nativeLangStats),
+        additionalLanguages: formatForChart(addLangStats),
+        howDidYouFindUs: formatForChart(sourceStats),
+        projectsInterestedIn: formatForChart(projectInterestStats)
+      },
+      egocentricStats
+    });
+  } catch (error) {
+    console.error('Visualisation data error:', error);
+    res.status(500).json({ success: false, error: 'Failed to generate visualisations' });
+  }
+});
 
 app.get('/api/pm/contributors-analysis', authenticatePM, async (req, res) => {
   try {
     await connectDB();
-    const users = await User.find({ role: 'user' }).lean();
 
-    const applications = await Application.find().lean();
-    const submissions = await Submission.find().lean();
+    // 1. Database-level aggregation for contributor applications and completed submissions
+    const usersWithApps = await User.aggregate([
+      { $match: { role: 'user' } },
+      { $project: { password: 0 } },
+      {
+        $lookup: {
+          from: 'applications',
+          localField: '_id',
+          foreignField: 'contributorId',
+          as: 'userApps'
+        }
+      },
+      {
+        $lookup: {
+          from: 'submissions',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$contributorId', '$$userId'] },
+                    { $eq: ['$status', 'Completed'] }
+                  ]
+                }
+              }
+            },
+            { $project: { projectId: 1 } }
+          ],
+          as: 'completedSubs'
+        }
+      },
+      {
+        $addFields: {
+          appliedProjectIds: {
+            $setUnion: [
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$userApps',
+                      as: 'app',
+                      cond: { $ne: ['$$app.projectId', null] }
+                    }
+                  },
+                  as: 'a',
+                  in: { $toString: '$$a.projectId' }
+                }
+              },
+              []
+            ]
+          },
+          completedProjectIds: {
+            $setUnion: [
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$completedSubs',
+                      as: 'sub',
+                      cond: { $ne: ['$$sub.projectId', null] }
+                    }
+                  },
+                  as: 's',
+                  in: { $toString: '$$s.projectId' }
+                }
+              },
+              []
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          userApps: 0,
+          completedSubs: 0
+        }
+      }
+    ]);
 
-    // Attach applied project IDs and work status to each user for PM dashboard convenience
-    const usersWithApps = users.map(u => {
-      const userApps = applications.filter(a => a.contributorId.toString() === u._id.toString());
-      const completedProjectIds = [...new Set(submissions
-        .filter(s => s.contributorId.toString() === u._id.toString() && s.status === 'Completed')
-        .map(s => s.projectId.toString()))];
+    // 2. Database-level aggregation for project applicant counts
+    const applicantCounts = await Application.aggregate([
+      { $match: { projectId: { $ne: null } } },
+      { $group: { _id: '$projectId', applicantCount: { $sum: 1 } } }
+    ]);
+    const countMap = new Map(applicantCounts.map(c => [c._id.toString(), c.applicantCount]));
 
-      return {
-        ...u,
-        appliedProjectIds: [...new Set(userApps.map(a => a.projectId.toString()))],
-        completedProjectIds
-      };
-    });
-
-    // Get count per project
     const projects = await Project.find().select('title status').lean();
-    const projectStats = projects.map(p => {
-      const count = applications.filter(a => a.projectId.toString() === p._id.toString()).length;
-      return {
-        projectId: p._id,
-        title: p.title,
-        status: p.status || 'active',
-        applicantCount: count
-      };
-    });
+    const projectStats = projects.map(p => ({
+      projectId: p._id,
+      title: p.title,
+      status: p.status || 'active',
+      applicantCount: countMap.get(p._id.toString()) || 0
+    }));
 
     res.json({ success: true, contributors: usersWithApps, projectStats });
   } catch (err) {
-    console.error(err);
+    console.error('Contributor analysis aggregation error:', err);
     res.status(500).json({ error: 'Failed to fetch contributor analysis' });
   }
 });
@@ -1416,34 +1743,59 @@ app.post('/api/pm/mail-contributors', authenticatePM, async (req, res) => {
       return res.status(400).json({ error: 'No valid email addresses found' });
     }
 
-    const senderEmail = process.env.SMTP_USER;
+    const senderEmail = SMTP_USER;
 
-    // Send in chunks of 20 to respect rate limits
-    const chunkSize = 20;
-    for (let i = 0; i < emails.length; i += chunkSize) {
-      const chunk = emails.slice(i, i + chunkSize);
-      
-      const mailOptions = {
-        from: `"Vision Capture" <${senderEmail}>`,
-        bcc: chunk.join(','),
-        subject,
-        text: message,
-        html: `<div style="font-family: sans-serif; white-space: pre-wrap; color: #334155; line-height: 1.6;">${message}</div>`
-      };
+    // Immediately return HTTP 200 response to avoid reverse proxy / serverless gateway timeouts (e.g. Vercel 10s limit)
+    res.json({ success: true, message: `Successfully queued emails for ${emails.length} contributors.` });
 
-      await transporter.sendMail(mailOptions);
-      
-      // Delay between chunks if needed (1s)
-      if (i + chunkSize < emails.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    // Asynchronously dispatch email batches in background
+    const dispatchPromise = (async () => {
+      try {
+        const chunkSize = 20;
+        for (let i = 0; i < emails.length; i += chunkSize) {
+          const chunk = emails.slice(i, i + chunkSize);
+          
+          const mailOptions = {
+            from: `"Vision Capture" <${senderEmail}>`,
+            bcc: chunk.join(','),
+            subject,
+            text: message,
+            html: `<div style="font-family: sans-serif; white-space: pre-wrap; color: #334155; line-height: 1.6;">${message}</div>`
+          };
+
+          await transporter.sendMail(mailOptions);
+          
+          // Delay between chunks if needed (1s) to respect SMTP rate limits
+          if (i + chunkSize < emails.length) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+        console.log(`[Bulk Mailer] Successfully dispatched batch to ${emails.length} recipients for: "${subject}"`);
+      } catch (sendErr) {
+        console.error('[Bulk Mailer Background Error]:', sendErr);
+      }
+    })();
+
+    if (typeof waitUntil === 'function') {
+      try {
+        waitUntil(dispatchPromise);
+      } catch (wErr) {
+        // Safe fallback in non-serverless runtime
       }
     }
-
-    res.json({ success: true, message: `Successfully queued emails for ${emails.length} contributors.` });
   } catch (err) {
-    console.error('Mail error:', err);
+    console.error('Mail initialization error:', err);
     res.status(500).json({ error: 'Failed to send emails' });
   }
+});
+
+// Global Express Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  if (err.message && err.message.includes('Invalid file type')) {
+    return res.status(400).json({ error: err.message });
+  }
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 if (process.env.NODE_ENV !== 'production') {

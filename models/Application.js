@@ -7,6 +7,7 @@ const ApplicationSchema = new mongoose.Schema({
   formData: { type: mongoose.Schema.Types.Mixed }, // For dynamic application forms (e.g., Egocentric project)
   termsHash: { type: String }, // SHA-256 hash of the agreed terms
   agreedToTermsAt: { type: Date },
+  onboardingCompleted: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // Prevent duplicate applications

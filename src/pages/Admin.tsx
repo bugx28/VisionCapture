@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Search } from 'lucide-react';
 
 const getDaysAgo = (dateString?: string) => {
   if (!dateString) return '';
@@ -46,6 +47,16 @@ export default function Admin() {
   }, [activeTab]);
   const [filterEgocentric, setFilterEgocentric] = useState(false);
   const [filterCountry, setFilterCountry] = useState('');
+  const [searchUserQuery, setSearchUserQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchUserQuery);
+      setUsersPage(1); // Reset to page 1 when search actually executes
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchUserQuery]);
   
   // Pagination State
   const [usersPage, setUsersPage] = useState(1);
@@ -92,9 +103,9 @@ export default function Admin() {
 
   // Queries
   const { data: usersData, isLoading: isUsersLoading } = useQuery({
-    queryKey: ['admin-users', usersPage, filterCountry, token],
+    queryKey: ['admin-users', usersPage, filterCountry, debouncedSearchQuery, token],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/users?page=${usersPage}&limit=20${filterCountry ? '&country=' + encodeURIComponent(filterCountry) : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`/api/admin/users?page=${usersPage}&limit=20${filterCountry ? '&country=' + encodeURIComponent(filterCountry) : ''}${debouncedSearchQuery ? '&search=' + encodeURIComponent(debouncedSearchQuery) : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) { handleLogout(); throw new Error('Unauthorized'); }
       const data = await res.json();
       return data;
@@ -645,16 +656,28 @@ export default function Admin() {
               )}
             </div>
             {activeTab === 'contributors' && (
-              <select 
-                value={filterCountry} 
-                onChange={(e) => { setFilterCountry(e.target.value); setUsersPage(1); }}
-                className="w-full text-sm font-semibold bg-blue-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white transition-colors"
-              >
-                <option value="">All Countries</option>
-                {countriesData?.map((country: string) => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name or email..."
+                    value={searchUserQuery}
+                    onChange={(e) => setSearchUserQuery(e.target.value)}
+                    className="w-full text-sm font-semibold bg-white border border-slate-200 text-slate-700 rounded-lg pl-9 pr-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 hover:bg-slate-50 transition-colors"
+                  />
+                </div>
+                <select 
+                  value={filterCountry} 
+                  onChange={(e) => { setFilterCountry(e.target.value); setUsersPage(1); }}
+                  className="w-full sm:w-auto text-sm font-semibold bg-blue-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white transition-colors"
+                >
+                  <option value="">All Countries</option>
+                  {countriesData?.map((country: string) => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
             )}
           </div>
           <div className="space-y-4 flex-1 overflow-y-auto pr-2">

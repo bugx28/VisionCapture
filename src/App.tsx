@@ -14,14 +14,21 @@ const Leaderboard = React.lazy(() => import('./pages/Leaderboard'));
 const Signup = React.lazy(() => import('./pages/Signup'));
 const Opportunities = React.lazy(() => import('./pages/Opportunities'));
 const OpportunityManager = React.lazy(() => import('./pages/OpportunityManager'));
+const Visualisation = React.lazy(() => import('./pages/Visualisation'));
+const EgocentricOnboarding = React.lazy(() => import('./pages/EgocentricOnboarding'));
+const Legal = React.lazy(() => import('./pages/Legal'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
+  const prevPathname = React.useRef(pathname);
 
   useEffect(() => {
-    // Only scroll to top if there is no hash in the URL
-    if (!hash) {
+    // If navigating to a different page, always scroll to top
+    if (prevPathname.current !== pathname) {
+      window.scrollTo(0, 0);
+      prevPathname.current = pathname;
+    } else if (!hash) {
       window.scrollTo(0, 0);
     }
   }, [pathname, hash]);
@@ -56,8 +63,17 @@ export default function App() {
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/project-manager" element={<ProjectManager />} />
+              <Route path="/pm-visualisations" element={<Visualisation />} />
               <Route path="/opportunity-manager" element={<OpportunityManager />} />
+              <Route path="/onboarding/:applicationId" element={<EgocentricOnboarding />} />
               <Route path="/opportunities" element={<Opportunities />} />
+              <Route path="/legal" element={<Legal />} />
+              <Route path="/privacy" element={<Navigate to="/legal#privacy" replace />} />
+              <Route path="/privacy-policy" element={<Navigate to="/legal#privacy" replace />} />
+              <Route path="/terms" element={<Navigate to="/legal#terms" replace />} />
+              <Route path="/terms-of-service" element={<Navigate to="/legal#terms" replace />} />
+              <Route path="/ethics" element={<Navigate to="/legal#ethics" replace />} />
+              <Route path="/ethical-data-guidelines" element={<Navigate to="/legal#ethics" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </React.Suspense>

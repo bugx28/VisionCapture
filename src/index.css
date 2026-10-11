@@ -65,14 +65,21 @@ body {
   animation: shine 3s infinite linear;
 }
 
-/* Disable ALL animations on mobile for performance and battery */
+/* Disable heavy cosmetic animations on mobile to save GPU/battery */
 @media (max-width: 767px) {
+  .animate-shine {
+    animation: none !important;
+  }
+}
+
+/* Accessibility: Honor user's reduced motion settings */
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001s !important;
-    animation-delay: 0s !important;
-    transition-duration: 0.001s !important;
-    transition-delay: 0s !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -15,19 +15,91 @@ interface ProjectChatProps {
 export default function ProjectChat({ projectId, projectName, token, currentUserId, receiverId, receiverName, receiverEmail, onBack }: any) {
   const queryClient = useQueryClient();
   const [content, setContent] = useState('');
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages, isLoading } = useQuery({
-    queryKey: ['project-messages', projectId, receiverId],
-    queryFn: async () => {
-      const res = await fetch(`/api/project-messages/${projectId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      return data.messages || [];
-    },
-    refetchInterval: 5000 // Poll every 5 seconds for new messages
-  });
+  const prevCountRef = useRef(0);
+  const initialScrollDone = useRef(false);
+  const latestTimestampRef = useRef<string | null>(null);
+
+  // Initial load and incremental cursor-based polling
+  useEffect(() => {
+    let isMounted = true;
+    setMessages([]);
+    setIsLoading(true);
+    latestTimestampRef.current = null;
+    initialScrollDone.current = false;
+
+    const fetchInitial = async () => {
+      try {
+        const url = receiverId
+          ? `/api/project-messages/${projectId}?limit=100&contributorId=${receiverId}`
+          : `/api/project-messages/${projectId}?limit=100`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (isMounted) {
+          const initialMsgs = data.messages || [];
+          setMessages(initialMsgs);
+          if (initialMsgs.length > 0) {
+            latestTimestampRef.current = initialMsgs[initialMsgs.length - 1].createdAt;
+          }
+          setIsLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchInitial();
+
+    // Incremental polling every 5s fetching only new delta messages
+    const pollInterval = setInterval(async () => {
+      try {
+        if (!latestTimestampRef.current) {
+          // Retry initial fetch if no messages were present initially
+          const url = receiverId
+            ? `/api/project-messages/${projectId}?limit=100&contributorId=${receiverId}`
+            : `/api/project-messages/${projectId}?limit=100`;
+          const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (isMounted && data.messages && data.messages.length > 0) {
+            setMessages(data.messages);
+            latestTimestampRef.current = data.messages[data.messages.length - 1].createdAt;
+          }
+          return;
+        }
+
+        const pollUrl = receiverId
+          ? `/api/project-messages/${projectId}?since=${encodeURIComponent(latestTimestampRef.current)}&contributorId=${receiverId}`
+          : `/api/project-messages/${projectId}?since=${encodeURIComponent(latestTimestampRef.current)}`;
+        const res = await fetch(pollUrl, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (isMounted && data.messages && data.messages.length > 0) {
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m._id));
+            const newDeltas = data.messages.filter((m: any) => !existingIds.has(m._id));
+            if (newDeltas.length === 0) return prev;
+            latestTimestampRef.current = newDeltas[newDeltas.length - 1].createdAt;
+            return [...prev, ...newDeltas];
+          });
+        }
+      } catch (pollErr) {
+        // Silently swallow polling network drops
+      }
+    }, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, [projectId, receiverId, token]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async () => {
@@ -37,16 +109,41 @@ export default function ProjectChat({ projectId, projectName, token, currentUser
         body: JSON.stringify({ receiverId, content })
       });
       if (!res.ok) throw new Error('Failed to send');
+      return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setContent('');
-      queryClient.invalidateQueries({ queryKey: ['project-messages'] });
+      if (data?.message) {
+        setMessages(prev => {
+          if (prev.some(m => m._id === data.message._id)) return prev;
+          latestTimestampRef.current = data.message.createdAt;
+          return [...prev, data.message];
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['unread-messages'] });
     }
   });
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Filter messages safely for this specific 1-on-1 conversation
+  const chatMessages = messages?.filter((m: any) => {
+    if (!m?.senderId || !m?.receiverId) return false;
+    const senderIdStr = String(m.senderId._id || m.senderId);
+    const receiverIdStr = String(m.receiverId._id || m.receiverId);
+    return (
+      (senderIdStr === String(currentUserId) && receiverIdStr === String(receiverId)) ||
+      (senderIdStr === String(receiverId) && receiverIdStr === String(currentUserId))
+    );
+  }) || [];
 
+  useEffect(() => {
+    if (!initialScrollDone.current || chatMessages.length > prevCountRef.current) {
+      chatEndRef.current?.scrollIntoView({ behavior: initialScrollDone.current ? 'smooth' : 'auto' });
+      initialScrollDone.current = true;
+    }
+    prevCountRef.current = chatMessages.length;
+  }, [chatMessages.length]);
+
+  useEffect(() => {
     // Mark messages as read when viewing the chat
     const markAsRead = async () => {
       try {
@@ -60,16 +157,10 @@ export default function ProjectChat({ projectId, projectName, token, currentUser
         console.error('Failed to mark messages as read', err);
       }
     };
-    if (messages && messages.length > 0) {
+    if (chatMessages.length > 0) {
       markAsRead();
     }
-  }, [messages, projectId, token, queryClient]);
-
-  // Filter messages for this specific 1-on-1 conversation
-  const chatMessages = messages?.filter((m: any) =>
-    (String(m.senderId._id) === String(currentUserId) && String(m.receiverId._id) === String(receiverId)) ||
-    (String(m.senderId._id) === String(receiverId) && String(m.receiverId._id) === String(currentUserId))
-  ) || [];
+  }, [chatMessages.length, projectId, token, receiverId, queryClient]);
 
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading messages...</div>;
 
@@ -116,13 +207,14 @@ export default function ProjectChat({ projectId, projectName, token, currentUser
           )}
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto min-h-0 p-6 space-y-4">
         {chatMessages.map((msg: any) => {
-          const isMe = msg.senderId._id === currentUserId;
+          const isMe = msg.senderId?._id === currentUserId || String(msg.senderId) === currentUserId;
+          const senderName = isMe ? 'You' : (msg.senderId?.fullName || 'User');
           return (
             <div key={msg._id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
               <div className="flex items-center gap-2 mb-1 px-2">
-                <span className="text-xs font-bold text-slate-500">{isMe ? 'You' : msg.senderId.fullName}</span>
+                <span className="text-xs font-bold text-slate-500">{senderName}</span>
                 <span className="text-[10px] text-slate-400">
                   {new Date(msg.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                 </span>

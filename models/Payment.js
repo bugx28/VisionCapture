@@ -9,4 +9,7 @@ const PaymentSchema = new mongoose.Schema({
   remarks: { type: String },
 }, { timestamps: true });
 
+PaymentSchema.index({ projectId: 1, contributorId: 1 });
+PaymentSchema.index({ contributorId: 1, status: 1 });
+
 export default mongoose.models.Payment || mongoose.model('Payment', PaymentSchema);

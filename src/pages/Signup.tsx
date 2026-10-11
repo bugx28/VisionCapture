@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Globe, CheckCircle2, UserPlus, MonitorPlay, Video, Wallet, MessageSquare } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import CountrySelect from '../components/CountrySelect';
 import { COUNTRIES } from '../utils/countries';
@@ -154,10 +154,11 @@ export default function Signup() {
     }
 
     const selectedDialCode = COUNTRIES.find(c => c.name === formData.country || c.code === formData.country)?.dial_code || '';
-    const fullPhone = `${selectedDialCode} ${formData.phone.trim()}`;
-    const phoneRegex = /^\+\d{1,4}[\s-]?(?:\d[\s-]?){9}\d$/;
+    const cleanDigits = formData.phone.replace(/\D/g, '');
+    const fullPhone = `${selectedDialCode} ${cleanDigits}`;
+    const isValidPhone = cleanDigits.length >= 6 && cleanDigits.length <= 15;
 
-    if (formData.phone && !phoneRegex.test(fullPhone)) {
+    if (formData.phone && !isValidPhone) {
       if (!newInvalidFields.includes('phone')) newInvalidFields.push('phone');
     }
 
@@ -180,8 +181,8 @@ export default function Signup() {
       return;
     }
 
-    if (!phoneRegex.test(fullPhone)) {
-      setErrorMessage('Phone number is invalid. Please enter exactly 10 digits.');
+    if (!isValidPhone) {
+      setErrorMessage('Phone number is invalid. Please enter a valid number (6-15 digits).');
       setStatus('error');
       document.getElementById('registration-form')?.scrollIntoView({ behavior: 'smooth' });
       return;
@@ -439,7 +440,7 @@ export default function Signup() {
                   className="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
                 />
                 <label htmlFor="terms" className="text-sm text-slate-700">
-                  I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+                  I agree to the <Link to="/legal#terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link to="/legal#privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Privacy Policy</Link>
                 </label>
               </div>
 
