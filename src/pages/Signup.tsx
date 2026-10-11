@@ -5,6 +5,15 @@ import SEO from '../components/SEO';
 import CountrySelect from '../components/CountrySelect';
 import { COUNTRIES } from '../utils/countries';
 
+const getFriendlyErrorMessage = (err: any, fallback: string) => {
+  if (!err) return fallback;
+  const msg = typeof err === 'string' ? err : err.message || '';
+  if (msg.toLowerCase().includes('load failed') || msg.toLowerCase().includes('failed to fetch')) {
+    return 'Unable to reach the server. The connection timed out or was interrupted. Please try again.';
+  }
+  return msg || fallback;
+};
+
 export default function Signup() {
   const params = new URLSearchParams(window.location.search);
   let rawProject = params.get('project');
@@ -117,7 +126,7 @@ export default function Signup() {
       setStatus('idle');
     } catch (err: any) {
       setStatus('error');
-      setErrorMessage(err.message);
+      setErrorMessage(getFriendlyErrorMessage(err, 'Failed to send OTP'));
     }
   };
 
@@ -243,7 +252,7 @@ export default function Signup() {
       setStatus('success');
     } catch (err: any) {
       setStatus('error');
-      setErrorMessage(err.message);
+      setErrorMessage(getFriendlyErrorMessage(err, 'Registration failed'));
     }
   };
 

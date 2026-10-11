@@ -126,6 +126,9 @@ const transporter = nodemailer.createTransport({
     user: SMTP_USER,
     pass: SMTP_PASS,
   },
+  connectionTimeout: 10000, // 10s max to establish connection
+  greetingTimeout: 7000,    // 7s max for SMTP greeting
+  socketTimeout: 15000,     // 15s max socket inactivity
 });
 
 // Middleware for Admin Auth
@@ -267,7 +270,8 @@ app.post('/api/auth/send-otp', otpRateLimiter, async (req, res) => {
       res.json({ success: true, message: 'SMTP not configured, check server logs.' });
     }
   } catch (err) {
-    res.status(500).json({ error: 'Failed to send OTP.' });
+    console.error('Send OTP error:', err);
+    res.status(500).json({ error: 'Failed to send OTP email. Please try again.' });
   }
 });
 

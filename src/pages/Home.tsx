@@ -21,9 +21,59 @@ export default function Home() {
         "name": "Vision Capture",
         "url": "https://visioncapture.in",
         "logo": "https://visioncapture.in/logo.svg",
+        "email": "info@visioncapture.in",
+        "description": "Leading AI data collection platform specializing in high-fidelity egocentric POV video and multimodal human demonstration datasets for Physical AI and robotics foundation models.",
+        "areaServed": {
+          "@type": "AdministrativeArea",
+          "name": "Worldwide"
+        },
+        "knowsAbout": [
+          "Physical AI",
+          "Embodied AI",
+          "Robotics Foundation Models",
+          "Egocentric Computer Vision",
+          "Multimodal AI Datasets",
+          "Human Demonstration Learning",
+          "Spatial Intelligence",
+          "Dexterous Manipulation",
+          "Behavior Cloning",
+          "Imitation Learning"
+        ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "AI Training Data Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Egocentric POV Video Data Collection",
+                "description": "4K and 1080p high-frame-rate first-person video captured via smart glasses and action cameras."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Physical AI & Robotics Demonstration Datasets",
+                "description": "Multi-domain human manipulation and navigation datasets for embodied robotics policies."
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Automated Anonymization & Ethical Annotation",
+                "description": "Bystander facial blurring, license plate obfuscation, and action-timestamp segmentation."
+              }
+            }
+          ]
+        },
         "contactPoint": {
           "@type": "ContactPoint",
-          "contactType": "customer support"
+          "email": "info@visioncapture.in",
+          "contactType": "sales",
+          "availableLanguage": ["English", "Hindi"]
         }
       },
       {
@@ -31,20 +81,9 @@ export default function Home() {
         "@id": "https://visioncapture.in/#website",
         "url": "https://visioncapture.in",
         "name": "Vision Capture",
+        "description": "Accelerating next-generation robotics and Physical AI with authentic first-person human demonstration datasets at scale.",
         "publisher": {
           "@id": "https://visioncapture.in/#organization"
-        }
-      },
-      {
-        "@type": "Service",
-        "name": "AI Data Collection",
-        "provider": {
-          "@id": "https://visioncapture.in/#organization"
-        },
-        "description": "We specialize in egocentric and POV video data collection for training physical AI and robotics.",
-        "areaServed": {
-          "@type": "Country",
-          "name": "India"
         }
       }
     ]

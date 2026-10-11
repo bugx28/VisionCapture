@@ -110,7 +110,7 @@ export default function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -169,11 +169,11 @@ export default function Header() {
   };
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-500 w-full mx-auto ${isScrolled
-      ? 'pt-4 px-4 md:px-8 max-w-7xl'
+    <header className={`sticky top-0 z-50 w-full mx-auto transition-[padding,max-width] duration-300 ease-out ${isScrolled
+      ? 'pt-3 px-4 md:px-8 max-w-7xl'
       : 'pt-6 px-4 md:px-8 max-w-[1600px]'
       }`}>
-      <div className={`transition-all duration-500 bg-white/95 border border-slate-200 shadow-lg ${isScrolled
+      <div className={`transition-[border-radius,padding,box-shadow,background-color] duration-300 ease-out bg-white/95 border border-slate-200 shadow-lg ${isScrolled
         ? 'rounded-full px-6 sm:px-8 py-2'
         : 'rounded-3xl px-4 sm:px-6 py-2'
         }`}>

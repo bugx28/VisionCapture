@@ -1,9 +1,49 @@
+# ==========================================
+# Robots.txt for Vision Capture
+# ==========================================
+
+# Standard Web Crawlers
 User-agent: *
 Allow: /
 Disallow: /profile
+Disallow: /dashboard
 Disallow: /admin
 Disallow: /project-manager
-Disallow: /signup
+Disallow: /onboarding/
 Disallow: /api/
 
+
+# AI Search & LLM Crawlers (Explicitly Allowed for GEO & AI Answers)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# XML Sitemap
 Sitemap: https://visioncapture.in/sitemap.xml
+
+# LLM & AI Agent Context Reference
+# See https://visioncapture.in/llms.txt
+# See https://visioncapture.in/llms-full.txt

@@ -71,38 +71,39 @@ export default function Hero() {
     }
   };
 
-  const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
-  const [isMobile, setIsMobile] = useState(false);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
+  // Ensure video autoplays immediately on initial mount, and pauses when scrolled offscreen
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    // Initial check
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    const video = videoRef.current;
+    if (!video) return;
 
-    // Defer heavy video download until after initial paint (LCP)
-    // Now loading on both mobile and desktop to be more impactful
-    const timer = setTimeout(() => {
-      setVideoSrc('/intro-video.mp4');
-    }, 100);
-    
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', checkMobile);
-    };
+    // Explicitly set muted properties on the DOM node to pass Safari/WebKit autoplay security policies
+    video.muted = true;
+    video.defaultMuted = true;
+
+    // Attempt immediate playback on initial load
+    video.play().catch(() => {});
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <section className="relative min-h-[100dvh] flex flex-col pt-8 sm:pt-12 pb-8 sm:pb-20 overflow-hidden bg-blue-50 z-0">
-      {/* Background Gradients */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-200/40 mix-blend-multiply filter blur-[100px]" />
-        <div className="hidden md:block absolute top-[20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-200/40 mix-blend-multiply filter blur-[120px]" />
-      </div>
-
       <div className="w-full max-w-[1600px] mx-auto relative z-10 flex flex-col flex-1 px-4">
 
         {/* Split Hero Layout */}
@@ -118,14 +119,20 @@ export default function Hero() {
             {/* Video Background for Text Section */}
             <div className="absolute inset-0 z-0 bg-slate-900">
               <video
+                ref={videoRef}
                 autoPlay
                 loop
                 muted
                 playsInline
                 preload="metadata"
-                poster={videoSrc?.replace('.mp4', '-poster.jpg') || '/ego.webp'}
+                poster="/intro-video-poster.jpg"
                 className="w-full h-full object-cover opacity-90 transition-opacity duration-1000"
-                src={videoSrc}
+                src="/intro-video.mp4"
+                onLoadedData={() => {
+                  if (videoRef.current) {
+                    videoRef.current.play().catch(() => {});
+                  }
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-900/20 to-slate-900/60" />
             </div>

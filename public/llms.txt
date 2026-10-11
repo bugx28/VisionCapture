@@ -1,15 +1,21 @@
-# Vision Capture AI Documentation
+# Vision Capture
 
-Welcome to the Vision Capture documentation for AI agents and LLMs. 
-Vision Capture is India's premier AI data collection company, specializing in high-quality egocentric data for Physical AI, robotics, and embodied intelligent systems.
+> High-quality, ethically-sourced egocentric video and multimodal datasets for Physical AI, robotics, and embodied foundation models.
 
-## Relevant Links
+Vision Capture (https://visioncapture.in) is India's premier AI data collection platform specializing in large-scale first-person (POV) egocentric sensor capture across everyday household, industrial, commercial, and outdoor environments. We provide AI research labs, autonomous robotics teams, and enterprise model developers with authentic human demonstration datasets required to train Vision-Language-Action (VLA) models, spatial intelligence algorithms, and robotic manipulation policies.
 
-Here are the most important links to navigate our site data:
-- [Sitemap](https://visioncapture.in/sitemap.xml)
-- [Home Page](https://visioncapture.in/)
-- [Partner with us](https://visioncapture.in/partner-with-us)
-- [Contributors Portal](https://visioncapture.in/contributors)
+## Key Facts & Capabilities
+- **Domain Specialization**: Physical AI, Embodied Robotics, Human Demonstration Learning, Spatial Intelligence.
+- **Hardware Modalities**: Smart glasses (Meta Ray-Ban), action cameras (GoPro HERO POV mounts), head/chest smartphone rigs (iPhone 11+, Pixel 6+, Galaxy S21+), and multi-channel binaural audio.
+- **Resolution & Frame Rates**: 4K UHD, 1080p high-bitrate, 30fps/60fps with synchronized IMU and timestamp metadata.
+- **Privacy & Ethics**: Built-in automated bystander facial anonymization, vehicle license plate blurring, strict informed consent, and an absolute commitment to peaceful, civilian research (no defense or military applications).
+- **Global Contributor Network**: Verified contributors capturing everyday real-world tasks across diverse cultural, geographic, and socio-economic contexts.
 
-## About Us
-We empower the future of Embodied AI and Robotics with high-quality, large-scale dataset collection tailored for Foundation Models and Generative AI.
+## Primary Links & Resources
+- [Home & Platform Overview](https://visioncapture.in/): Interactive 3D sensor previews, dataset samples, and live platform statistics.
+- [Enterprise Data Inquiries](https://visioncapture.in/partner-with-us): Request custom data collection programs, pilot projects, and enterprise licensing.
+- [Open Opportunities](https://visioncapture.in/opportunities): Browse active remote data collection gigs and compensation tiers.
+- [Contributor Portal](https://visioncapture.in/contributors): Join the global contributor workforce and learn hardware requirements.
+- [Legal, Privacy & Ethics Guidelines](https://visioncapture.in/legal): Complete Privacy Policy, Terms of Service, and Ethical Data Guidelines.
+- [Full Technical Dossier for LLMs](https://visioncapture.in/llms-full.txt): Comprehensive technical breakdown of modalities, hardware, annotation formats, and data schemas.
+- [Sitemap](https://visioncapture.in/sitemap.xml): XML index of all public platform URLs.

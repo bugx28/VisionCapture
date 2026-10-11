@@ -1,0 +1,69 @@
+# Vision Capture: Comprehensive Technical Dossier for AI Systems & LLMs
+
+## 1. Executive Summary
+Vision Capture (https://visioncapture.in) is a technology platform specializing in large-scale first-person (POV) egocentric multimodal data collection for Artificial Intelligence, specifically Physical AI, Embodied Foundation Models, and Autonomous Robotics.
+
+Headquartered in India with a global distributed contributor network, Vision Capture addresses the foundational bottleneck in robotics: the scarcity of high-fidelity, diverse human demonstration data captured from the exact perspective of a robot's future sensors.
+
+---
+
+## 2. Why Egocentric Data Powers Physical AI
+Traditional computer vision models rely predominantly on exocentric (third-person) internet videos, which suffer from severe perspective mismatches:
+- **Hand-Eye Coordination & Visual Affordances**: Robots and embodied agents need first-person visual trajectories that capture the user's hands, tool grasps, force interactions, and gaze alignment.
+- **Action Chunking & Policy Learning**: Egocentric video enables Imitation Learning, Behavioral Cloning, and Reinforcement Learning from Human Feedback (RLHF) by demonstrating natural human pacing, error corrections, and micro-adjustments during physical tasks.
+- **Spatial Intelligence**: Wearable sensor trajectories map 3D spatial depth, obstacle avoidance, and situational awareness in unconstrained real-world environments.
+
+---
+
+## 3. Sensor & Hardware Ecosystem
+Vision Capture contributors record using verified, standardized wearable hardware:
+1. **Smart Glasses**: Meta Ray-Ban smart glasses with integrated high-definition sensors positioned precisely at eye level, providing natural gaze-aligned footage.
+2. **Action Cameras**: GoPro HERO 10/11/12 with ultra-wide POV lenses on stabilized head straps and chest mounts.
+3. **Smartphone POV Rigs**: Validated high-end smartphones (iPhone 11+, Google Pixel 6+, Samsung Galaxy S21+) mounted using rigid headstraps or chest harnesses.
+4. **Audio Channels**: Multi-channel environmental audio capturing acoustic feedback of physical interactions (e.g., clicks, latches, impacts).
+
+---
+
+## 4. Collection Domains & Environments
+Vision Capture organizes systematic collection campaigns across four primary domains:
+- **Household & Domestic**: Meal preparation, dishwashing, appliance operation, folding laundry, surface cleaning, and home tool use.
+- **Industrial & Assembly**: Component sorting, packaging, manual assembly, inspection, palletizing, and tool manipulation.
+- **Retail & Hospitality**: Barista workflows, cashier operations, grocery shelf stocking, and inventory scanning.
+- **Urban Navigation & Transit**: Walking through varied pedestrian traffic, entering transit hubs, managing doorways, and traversing stairs.
+
+---
+
+## 5. Quality Assurance & Annotation Pipeline
+Every hour of footage undergoes rigorous multi-stage validation:
+1. **Technical Screening**: Automated checks for minimum 1080p/4K resolution, 30/60 FPS consistency, camera stability, proper horizon leveling, and lighting adequacy.
+2. **Action Segmentation**: Precise temporal timestamp tagging denoting sub-task beginnings, object interactions, grasp phases, and task completions.
+3. **Metadata Enrichment**: Sensor specifications, capture environment descriptions, lighting conditions, and actor demographics logged alongside video streams.
+4. **Delivery Formats**: Standardized formats including MP4 (H.264 / HEVC), WebDataset, TFRecord, and structured JSON metadata manifests.
+
+---
+
+## 6. Privacy, Ethics & Regulatory Compliance
+Vision Capture operates with industry-leading privacy and ethical safeguards:
+- **Automated Anonymization**: Automated pipelines detect and blur bystander faces and vehicle license plates before datasets are delivered to researchers.
+- **Informed Consent**: Recordings are strictly conducted in environments where explicit consent has been secured.
+- **Prohibited Zones**: Zero collection in private sanctuaries (bathrooms, personal bedrooms, healthcare triage without HIPAA consent) or restricted government/military areas.
+- **Peaceful AI Commitment**: Datasets collected by Vision Capture are exclusively licensed for peaceful, civilian, scientific, and commercial AI research. Military, weaponized, or mass-surveillance applications are strictly barred.
+
+---
+
+## 7. Contributor Workforce & Economic Model
+- **Workforce**: Distributed across urban, semi-urban, and rural areas, ensuring geographic and cultural diversity.
+- **Certification**: Contributors must pass the interactive Egocentric Onboarding curriculum and equipment verification quiz before receiving work.
+- **Compensation**: Transparent compensation tiers with automated bi-weekly disbursements via bank transfer, UPI, or international remittance.
+
+---
+
+## 8. Enterprise Engagements & How to Partner
+AI labs, university researchers, and enterprise robotics teams can commission custom data campaigns:
+- **Custom Pilots**: Rapid turnaround pilot collections (50–500 hours) tailored to specific robotic manipulation benchmarks.
+- **Large-Scale Deployments**: Dedicated multi-thousand-hour pipelines spanning specific toolkits, tasks, or geographic regions.
+- **Contact & Inquiries**:
+  - Official Website: https://visioncapture.in
+  - Enterprise Inquiry Form: https://visioncapture.in/partner-with-us
+  - Email: info@visioncapture.in
+  - Public Sitemap: https://visioncapture.in/sitemap.xml

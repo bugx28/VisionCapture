@@ -40,11 +40,23 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
-      {/* Static Background Gradients — hidden on mobile to save GPU/battery */}
-      <div className="fixed inset-0 z-[-1] overflow-hidden bg-blue-50">
-        <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-200/40 mix-blend-multiply filter blur-[100px]" />
-        <div className="hidden md:block absolute top-[20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-200/40 mix-blend-multiply filter blur-[120px]" />
-        <div className="hidden md:block absolute bottom-[-20%] left-[20%] w-[60%] h-[60%] rounded-full bg-sky-200/40 mix-blend-multiply filter blur-[100px]" />
+      {/* Hardware-accelerated background gradients with native radial gradients for smooth 120fps scrolling on Safari & Chrome */}
+      <div 
+        className="fixed inset-0 z-[-1] overflow-hidden bg-blue-50 pointer-events-none"
+        style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+      >
+        <div 
+          className="hidden md:block absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full opacity-60"
+          style={{ background: 'radial-gradient(circle, rgba(191, 219, 254, 0.7) 0%, rgba(191, 219, 254, 0) 70%)' }}
+        />
+        <div 
+          className="hidden md:block absolute top-[20%] right-[-10%] w-[70vw] h-[70vw] rounded-full opacity-60"
+          style={{ background: 'radial-gradient(circle, rgba(199, 210, 254, 0.7) 0%, rgba(199, 210, 254, 0) 70%)' }}
+        />
+        <div 
+          className="hidden md:block absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] rounded-full opacity-50"
+          style={{ background: 'radial-gradient(circle, rgba(224, 242, 254, 0.7) 0%, rgba(224, 242, 254, 0) 70%)' }}
+        />
       </div>
 
       <Header />

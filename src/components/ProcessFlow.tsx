@@ -4,6 +4,7 @@ import { Glasses, Database, Settings, Brain, FileVideo } from 'lucide-react';
 
 export default function ProcessFlow() {
   const containerRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -12,6 +13,31 @@ export default function ProcessFlow() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Pause video when scrolled out of view to free Safari / GPU decoder resources
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
   }, []);
 
   const steps = [
@@ -173,6 +199,7 @@ export default function ProcessFlow() {
 
             <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-inner group-hover:shadow-2xl transition-all duration-500">
               <video
+                ref={videoRef}
                 autoPlay
                 loop
                 muted

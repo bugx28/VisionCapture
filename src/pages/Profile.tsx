@@ -143,7 +143,10 @@ export default function Profile() {
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
       setOtpSent(true);
     } catch (err: any) {
-      setResetError(err.message);
+      const msg = err.message?.toLowerCase().includes('load failed') || err.message?.toLowerCase().includes('failed to fetch')
+        ? 'Connection timed out or failed to reach the server. Please try again.'
+        : (err.message || 'Failed to send OTP');
+      setResetError(msg);
     } finally {
       setIsResetLoading(false);
     }
@@ -416,7 +419,10 @@ export default function Profile() {
       if (!res.ok) throw new Error(json.error || 'Failed to send OTP');
       setIsProfileOtpSent(true);
     } catch (err: any) {
-      showModal('Error', err.message, 'error');
+      const msg = err.message?.toLowerCase().includes('load failed') || err.message?.toLowerCase().includes('failed to fetch')
+        ? 'Connection timed out or failed to reach the server. Please try again.'
+        : (err.message || 'Failed to send OTP');
+      showModal('Error', msg, 'error');
     } finally {
       setIsSendingProfileOtp(false);
     }
@@ -443,7 +449,10 @@ export default function Profile() {
       if (!res.ok) throw new Error(json.error || 'Failed to send OTP');
       setIsProfileOtpSent(true);
     } catch (err: any) {
-      showModal('Error', err.message, 'error');
+      const msg = err.message?.toLowerCase().includes('load failed') || err.message?.toLowerCase().includes('failed to fetch')
+        ? 'Connection timed out or failed to reach the server. Please try again.'
+        : (err.message || 'Failed to send OTP');
+      showModal('Error', msg, 'error');
     } finally {
       setIsSendingProfileOtp(false);
     }
